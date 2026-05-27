@@ -1,0 +1,54 @@
+# Node.js / Next.js
+Checkiski.Client/node_modules/
+Checkiski.Client/.next/
+Checkiski.Client/out/
+Checkiski.Client/build/
+Checkiski.Client/.env.local
+Checkiski.Client/.env.development.local
+Checkiski.Client/.env.test.local
+Checkiski.Client/.env.production.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# .NET Core
+bin/
+obj/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.vs/
+.vscode/
+*.log
+*.sqlite3
+*.db
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# IDEs
+.idea/
+*.swp
+*.swo
+
+# Antigravity artifacts/metadata
+.antigravitycli/
+task.md
+debug_mate.cs
+fix2.py
+fix_bounds.py
+fix_sim.py
+push_changes.ps1
+
+# AI Markdown documentation files (except README.md)
+API.md
+ARCHITECTURE.md
+CODE_REVIEW_AND_GUIDELINES.md
+Checkiski_Core_Documentation.md
+FEATURES.md
