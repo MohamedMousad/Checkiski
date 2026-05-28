@@ -12,6 +12,7 @@ import GameClock from './GameClock';
 import GameControls from './GameControls';
 import ChatBox from './ChatBox';
 import GameAnalysis from './GameAnalysis';
+import PremiumBoard from './PremiumBoard';
 
 const pieceUnicode: Record<string, string> = {
   'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 'p': '♟',
@@ -231,119 +232,20 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
           </div>
         </div>
 
-        <div className="glass-panel" style={{ padding: '1rem', background: 'var(--board-border)' }}>
-          <div style={{ width: '480px', height: '480px', position: 'relative', overflow: 'hidden' }}>
-            {renderRows.map((r, visualR) => renderCols.map((c, visualC) => {
-              const piece = viewGame.board()[r][c];
-              const square = getSquare(r, c);
-              const isLight = (r + c) % 2 === 0;
-              const isSelected = selectedSquare === square;
-              const isLegalMove = legalMoves.includes(square);
-              
-              let bg = isLight ? 'var(--board-light)' : 'var(--board-dark)';
-              if (isSelected) bg = 'var(--board-highlight)';
-              // Add slight highlight to last move source/target
-              if (isReviewMode && reviewIndex > 0) {
-                 const lastMove = historyMoves[reviewIndex - 1];
-                 if (lastMove.from === square || lastMove.to === square) {
-                    bg = 'var(--board-highlight)';
-                 }
-              } else if (!isReviewMode && historyMoves.length > 0) {
-                 const lastMove = historyMoves[historyMoves.length - 1];
-                 if (lastMove.from === square || lastMove.to === square) {
-                    bg = 'var(--board-highlight)';
-                 }
-              }
-
-              return (
-                <div
-                  key={`bg-${r}-${c}`}
-                  onClick={() => handleSquareClick(square)}
-                  onDragOver={onDragOver}
-                  onDrop={(e) => onDrop(e, square)}
-                  style={{
-                    width: '60px', height: '60px', backgroundColor: bg, position: 'absolute',
-                    top: visualR * 60, left: visualC * 60, display: 'flex', alignItems: 'center', justifyContent: 'center'
-                  }}
-                >
-                  {((!isFlipped && c === 0) || (isFlipped && c === 7)) && <span style={{ position: 'absolute', top: 2, left: 2, fontSize: '10px', fontWeight: 'bold', color: isLight ? 'var(--board-dark)' : 'var(--board-light)', zIndex: 1 }}>{ranks[r]}</span>}
-                  {((!isFlipped && r === 7) || (isFlipped && r === 0)) && <span style={{ position: 'absolute', bottom: 2, right: 2, fontSize: '10px', fontWeight: 'bold', color: isLight ? 'var(--board-dark)' : 'var(--board-light)', zIndex: 1 }}>{files[c]}</span>}
-                  
-                  {isLegalMove && !piece && <div style={{ width: '20px', height: '20px', borderRadius: '50%', backgroundColor: 'var(--board-valid-move)', position: 'absolute', zIndex: 2 }} />}
-                  {isLegalMove && piece && <div style={{ width: '60px', height: '60px', borderRadius: '50%', border: '4px solid var(--board-valid-move)', position: 'absolute', boxSizing: 'border-box', zIndex: 2 }} />}
-                </div>
-              );
-            }))}
-
-            {renderRows.map((r, visualR) => renderCols.map((c, visualC) => {
-              const piece = viewGame.board()[r][c];
-              if (!piece) return null;
-              const square = getSquare(r, c);
-
-              return (
-                <div
-                  key={`${square}-${piece.color}${piece.type}`}
-                  draggable={!isReviewMode}
-                  onDragStart={(e) => onDragStart(e, square)}
-                  onDragOver={onDragOver}
-                  onDrop={(e) => { e.stopPropagation(); onDrop(e, square); }}
-                  onClick={(e) => { e.stopPropagation(); handleSquareClick(square); }}
-                  style={{
-                    position: 'absolute', top: visualR * 60, left: visualC * 60, width: '60px', height: '60px',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '45px',
-                    cursor: (!isReviewMode) ? 'grab' : 'default', userSelect: 'none',
-                    color: piece.color === 'w' ? '#ffffff' : '#000000',
-                    textShadow: piece.color === 'w' ? '0px 2px 4px rgba(0,0,0,0.8)' : '0px 2px 4px rgba(255,255,255,0.4)',
-                    zIndex: 10
-                  }}
-                >
-                  {pieceUnicode[piece.color === 'w' ? piece.type.toUpperCase() : piece.type]}
-                </div>
-              );
-            }))}
-            
-            {/* Best Move SVG Arrow Overlay (Analysis Mode) */}
-            {isReviewMode && bestMove && bestMove.length >= 4 && (
-              <svg style={{ position: 'absolute', top: 0, left: 0, width: '480px', height: '480px', zIndex: 15, pointerEvents: 'none' }}>
-                <defs>
-                  <marker id="arrowhead" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto">
-                    <path d="M0,0 L0,6 L6,3 z" fill="rgba(129, 182, 76, 0.9)" />
-                  </marker>
-                </defs>
-                {(() => {
-                  const fromFile = files.indexOf(bestMove[0]);
-                  const fromRank = ranks.indexOf(bestMove[1]);
-                  const toFile = files.indexOf(bestMove[2]);
-                  const toRank = ranks.indexOf(bestMove[3]);
-                  
-                  if (fromFile === -1 || fromRank === -1 || toFile === -1 || toRank === -1) return null;
-                  
-                  const visualFromFile = isFlipped ? 7 - fromFile : fromFile;
-                  const visualFromRank = isFlipped ? 7 - fromRank : fromRank;
-                  const visualToFile = isFlipped ? 7 - toFile : toFile;
-                  const visualToRank = isFlipped ? 7 - toRank : toRank;
-
-                  const x1 = visualFromFile * 60 + 30;
-                  const y1 = visualFromRank * 60 + 30;
-                  const x2 = visualToFile * 60 + 30;
-                  const y2 = visualToRank * 60 + 30;
-                  
-                  const angle = Math.atan2(y2 - y1, x2 - x1);
-                  const x2adj = x2 - Math.cos(angle) * 15;
-                  const y2adj = y2 - Math.sin(angle) * 15;
-
-                  return (
-                    <line 
-                      x1={x1} y1={y1} x2={x2adj} y2={y2adj}
-                      stroke="rgba(129, 182, 76, 0.9)" strokeWidth="12"
-                      markerEnd="url(#arrowhead)" strokeLinecap="round"
-                    />
-                  );
-                })()}
-              </svg>
-            )}
-          </div>
-        </div>
+        <PremiumBoard
+          game={viewGame}
+          isFlipped={isFlipped}
+          selectedSquare={selectedSquare}
+          legalMoves={legalMoves}
+          isReviewMode={isReviewMode}
+          bestMove={bestMove}
+          historyMoves={historyMoves}
+          reviewIndex={reviewIndex}
+          onSquareClick={handleSquareClick}
+          onDragStart={onDragStart}
+          onDrop={onDrop}
+          canDrag={(piece) => !isReviewMode && piece.color === game.turn() && game.turn() === (isFlipped ? 'b' : 'w')}
+        />
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>
           <GameClock timeRemaining={isFlipped ? blackClock : whiteClock} isActive={game.turn() === (isFlipped ? 'b' : 'w')} />

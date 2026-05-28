@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 
 export default function GameClock({ timeRemaining, isActive }: { timeRemaining: number, isActive: boolean }) {
-  // timeRemaining in seconds
   const [time, setTime] = useState(timeRemaining);
 
   useEffect(() => {
@@ -22,26 +21,29 @@ export default function GameClock({ timeRemaining, isActive }: { timeRemaining: 
 
   const mins = Math.floor(time / 60);
   const secs = time % 60;
-  
   const formattedTime = `${mins}:${secs.toString().padStart(2, '0')}`;
-  
   const isLowTime = time < 30;
+  const isCritical = time < 10;
 
   return (
-    <div className="glass-panel" style={{
-      padding: '0.75rem 1.5rem',
-      borderRadius: '8px',
-      fontSize: '2.5rem',
-      fontFamily: 'monospace',
+    <div style={{
+      padding: '10px 20px',
+      borderRadius: 'var(--radius-sm)',
+      fontSize: '2rem',
+      fontFamily: 'var(--font-mono)',
       fontWeight: 'bold',
-      backgroundColor: isActive ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.3)',
-      color: isLowTime ? '#ff4444' : '#ffffff',
+      background: isActive ? 'rgba(46,204,113,0.08)' : 'rgba(255,255,255,0.02)',
+      color: isCritical ? 'var(--color-danger)' : isLowTime ? '#ff9800' : 'var(--color-text)',
       display: 'inline-block',
-      boxShadow: isActive ? '0 0 10px rgba(255,255,255,0.2)' : 'none',
-      border: '1px solid rgba(255,255,255,0.1)',
+      border: isActive
+        ? '1px solid var(--color-emerald-dim)'
+        : '1px solid var(--panel-border)',
       transition: 'all 0.3s ease',
-      minWidth: '150px',
-      textAlign: 'center'
+      minWidth: '130px',
+      textAlign: 'center',
+      boxShadow: isActive ? '0 0 15px rgba(46,204,113,0.15)' : 'none',
+      animation: isCritical && isActive ? 'glowPulse 1s ease-in-out infinite' : 'none',
+      letterSpacing: '0.05em',
     }}>
       {formattedTime}
     </div>

@@ -19,22 +19,9 @@ export default function Profile() {
 
     const fetchProfile = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-        let url = '';
-        if (id === 'me') {
-          url = `${apiUrl}/api/player/profile/me`;
-        } else {
-          url = `${apiUrl}/api/player/profile/${id}`;
-        }
-        
-        const res = await fetch(url, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        if (!res.ok) throw new Error('Failed to fetch profile');
-        const data = await res.json();
+        const { ApiService } = await import('../../../services/api');
+        const endpoint = id === 'me' ? '/api/player/profile/me' : `/api/player/profile/${id}`;
+        const data = await ApiService.get<any>(endpoint);
         setProfile(data);
       } catch (err) {
         console.error(err);
@@ -46,62 +33,150 @@ export default function Profile() {
     fetchProfile();
   }, [id, router]);
 
-  if (loading) return <div style={{ textAlign: 'center', marginTop: '5rem' }}>Loading profile...</div>;
+  if (loading) return (
+    <div style={{
+      textAlign: 'center',
+      padding: 'calc(80px + var(--space-4xl)) var(--space-xl)',
+      color: 'var(--color-text-dim)',
+    }}>
+      <div style={{
+        width: '40px', height: '40px', border: '3px solid var(--color-muted)',
+        borderTop: '3px solid var(--color-emerald)', borderRadius: '50%',
+        animation: 'spin 1s linear infinite', margin: '0 auto var(--space-md)',
+      }} />
+      Loading profile...
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
+
+  const ratingCards = [
+    { type: 'Overall', rating: profile?.rating, icon: '♔' },
+    { type: 'Bullet', rating: profile?.bulletRating, icon: '⚡' },
+    { type: 'Blitz', rating: profile?.blitzRating, icon: '🔥' },
+    { type: 'Rapid', rating: profile?.rapidRating, icon: '⏱' },
+    { type: 'Classical', rating: profile?.classicalRating, icon: '🏛' },
+  ];
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem 1rem' }}>
-      <div className="glass-panel" style={{ width: '100%', maxWidth: '800px', padding: '3rem', borderRadius: '12px' }}>
-        
-        <div style={{ display: 'flex', alignItems: 'center', gap: '2rem', marginBottom: '3rem' }}>
+    <div style={{
+      display: 'flex',
+      justifyContent: 'center',
+      padding: 'calc(80px + var(--space-2xl)) var(--space-xl) var(--space-2xl)',
+    }}>
+      <div style={{
+        width: '100%',
+        maxWidth: '800px',
+        animation: 'fadeInUp 0.6s var(--ease-out) forwards',
+      }}>
+        {/* Profile Header Card */}
+        <div className="glass-panel" style={{
+          padding: 'var(--space-2xl)',
+          marginBottom: 'var(--space-xl)',
+          position: 'relative',
+          overflow: 'hidden',
+        }}>
+          {/* Glow accent */}
           <div style={{
-            width: '100px', height: '100px', borderRadius: '50%',
-            background: 'var(--accent-primary)', display: 'flex',
-            alignItems: 'center', justifyContent: 'center', fontSize: '3rem', fontWeight: 'bold',
-            overflow: 'hidden'
-          }}>
-            {profile?.profilePictureUrl ? (
-              <img src={profile.profilePictureUrl} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            ) : (
-              profile?.username?.charAt(0).toUpperCase()
+            position: 'absolute',
+            top: '-50px',
+            right: '-50px',
+            width: '200px',
+            height: '200px',
+            background: 'radial-gradient(circle, rgba(46,204,113,0.08) 0%, transparent 70%)',
+            pointerEvents: 'none',
+          }} />
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xl)', flexWrap: 'wrap', position: 'relative', zIndex: 1 }}>
+            {/* Avatar */}
+            <div style={{
+              width: '90px',
+              height: '90px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, var(--color-emerald-deep), var(--color-emerald-dim))',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '2.2rem',
+              fontWeight: 'bold',
+              color: 'var(--color-emerald)',
+              overflow: 'hidden',
+              border: '2px solid var(--color-emerald-dim)',
+              boxShadow: '0 0 25px rgba(46,204,113,0.2)',
+              flexShrink: 0,
+            }}>
+              {profile?.profilePictureUrl ? (
+                <img src={profile.profilePictureUrl} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                profile?.username?.charAt(0).toUpperCase()
+              )}
+            </div>
+
+            <div style={{ flex: 1, minWidth: '200px' }}>
+              <h1 className="text-display" style={{ fontSize: '1.8rem', marginBottom: 'var(--space-xs)' }}>
+                {profile?.username}
+              </h1>
+              {profile?.country && (
+                <p className="text-caption" style={{ color: 'var(--color-text-faint)', marginBottom: 'var(--space-sm)' }}>
+                  {profile.country}
+                </p>
+              )}
+              <p className="text-body" style={{ fontSize: '0.9rem', margin: 0 }}>
+                {profile?.bio || 'No bio provided.'}
+              </p>
+              <p style={{
+                color: 'var(--color-text-faint)',
+                fontSize: '0.8rem',
+                marginTop: 'var(--space-sm)',
+                fontFamily: 'var(--font-display)',
+              }}>
+                Member since {profile?.createdAt ? new Date(profile.createdAt).getFullYear() : '2026'}
+              </p>
+            </div>
+
+            {id === 'me' && (
+              <button className="btn-secondary" style={{ padding: '10px 20px', fontSize: '0.85rem' }} onClick={() => router.push('/settings')}>
+                ✏ Edit Profile
+              </button>
             )}
           </div>
-          <div style={{ flex: 1 }}>
-            <h1 style={{ margin: 0, fontSize: '2.5rem' }}>{profile?.username}</h1>
-            {profile?.country && <div style={{ color: 'var(--accent-secondary)', marginTop: '0.25rem' }}>{profile.country}</div>}
-            <div style={{ color: 'var(--foreground)', marginTop: '0.5rem', opacity: 0.8 }}>{profile?.bio || 'No bio provided.'}</div>
-            <div style={{ color: 'var(--accent-secondary)', marginTop: '0.5rem' }}>Member since {profile?.createdAt ? new Date(profile.createdAt).getFullYear() : '2026'}</div>
-          </div>
-          {id === 'me' && (
-            <button className="btn-secondary" style={{ marginLeft: 'auto' }} onClick={() => router.push('/settings')}>
-              Edit Profile
-            </button>
-          )}
         </div>
 
-        <h2 style={{ marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>
-          Ratings
-        </h2>
+        {/* Ratings Section */}
+        <div style={{ marginBottom: 'var(--space-md)' }}>
+          <p className="text-caption" style={{ color: 'var(--color-emerald-dim)', marginBottom: 'var(--space-lg)' }}>
+            Elo Ratings
+          </p>
+        </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1.5rem' }}>
-          
-          {[
-            { type: 'Overall', rating: profile?.rating },
-            { type: 'Bullet', rating: profile?.bulletRating },
-            { type: 'Blitz', rating: profile?.blitzRating },
-            { type: 'Rapid', rating: profile?.rapidRating },
-            { type: 'Classical', rating: profile?.classicalRating },
-          ].map(({ type, rating }) => (
-            <div key={type} style={{
-              background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: '8px', padding: '1.5rem', textAlign: 'center'
-            }}>
-              <div style={{ textTransform: 'capitalize', color: 'var(--accent-secondary)', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+          gap: 'var(--space-md)',
+        }}>
+          {ratingCards.map(({ type, rating, icon }, i) => (
+            <div
+              key={type}
+              className="glass-panel"
+              style={{
+                padding: 'var(--space-xl) var(--space-md)',
+                textAlign: 'center',
+                animation: `fadeInUp 0.5s var(--ease-out) ${0.1 + i * 0.08}s forwards`,
+                opacity: 0,
+              }}
+            >
+              <div style={{ fontSize: '1.5rem', marginBottom: 'var(--space-sm)' }}>{icon}</div>
+              <div className="text-caption" style={{ color: 'var(--color-text-faint)', marginBottom: 'var(--space-sm)' }}>
                 {type}
               </div>
-              <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>{rating || 1200}</div>
+              <div className="text-mono" style={{
+                fontSize: '1.5rem',
+                fontWeight: 'bold',
+                color: type === 'Overall' ? 'var(--color-emerald)' : 'var(--color-text)',
+              }}>
+                {rating || 1200}
+              </div>
             </div>
           ))}
-
         </div>
       </div>
     </div>

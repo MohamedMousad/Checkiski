@@ -32,21 +32,41 @@ export default function MoveHistory({ moves, selectedIndex = -1, onSelect, onNav
 
   const activeIdx = selectedIndex === -1 ? moves.length - 1 : selectedIndex;
 
+  const navBtnStyle: React.CSSProperties = {
+    flex: 1,
+    padding: '10px',
+    background: 'transparent',
+    border: 'none',
+    borderRight: '1px solid var(--panel-border)',
+    color: 'var(--color-text-dim)',
+    cursor: 'pointer',
+    fontFamily: 'var(--font-display)',
+    fontWeight: 500,
+    fontSize: '0.8rem',
+    transition: 'all 0.2s ease',
+    letterSpacing: '0.02em',
+  };
+
   return (
-    <div className="glass-panel" style={{
+    <div style={{
       width: '100%',
       height: '100%',
       display: 'flex',
       flexDirection: 'column',
       overflow: 'hidden',
+      background: 'var(--panel-bg)',
+      border: '1px solid var(--panel-border)',
+      borderRadius: 'var(--radius-md)',
     }}>
       <div style={{
-        padding: '0.75rem',
+        padding: '12px',
         borderBottom: '1px solid var(--panel-border)',
-        fontWeight: 'bold',
+        fontFamily: 'var(--font-display)',
+        fontWeight: 600,
+        fontSize: '0.85rem',
         textAlign: 'center',
-        background: 'rgba(0,0,0,0.2)',
-        fontSize: '1.1rem'
+        color: 'var(--color-text)',
+        letterSpacing: '0.02em',
       }}>
         Move History
       </div>
@@ -58,21 +78,31 @@ export default function MoveHistory({ moves, selectedIndex = -1, onSelect, onNav
         flexDirection: 'column',
       }}>
         {groupedMoves.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '2rem', color: 'rgba(255,255,255,0.5)', fontStyle: 'italic' }}>
+          <div style={{
+            textAlign: 'center',
+            padding: 'var(--space-2xl)',
+            color: 'var(--color-text-faint)',
+            fontStyle: 'italic',
+            fontSize: '0.85rem',
+          }}>
             No moves yet
           </div>
         )}
         {groupedMoves.map((turn, idx) => (
           <div key={turn.index} style={{ 
             display: 'flex', 
-            background: idx % 2 === 0 ? 'rgba(0,0,0,0.1)' : 'transparent',
+            background: idx % 2 === 0 ? 'rgba(255,255,255,0.015)' : 'transparent',
           }}>
             <div style={{ 
-              width: '40px', 
-              padding: '0.25rem 0.5rem', 
-              color: '#888',
-              background: 'rgba(0,0,0,0.2)',
-              textAlign: 'center'
+              width: '36px', 
+              padding: '4px 8px', 
+              color: 'var(--color-text-faint)',
+              fontSize: '0.75rem',
+              fontFamily: 'var(--font-mono)',
+              textAlign: 'center',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}>
               {turn.index}.
             </div>
@@ -81,11 +111,15 @@ export default function MoveHistory({ moves, selectedIndex = -1, onSelect, onNav
               onClick={() => interactive && onSelect?.(turn.whiteIdx)}
               style={{ 
                 flex: 1, 
-                padding: '0.25rem 0.75rem',
+                padding: '4px 10px',
                 cursor: interactive ? 'pointer' : 'default',
-                fontWeight: 'bold',
-                background: activeIdx === turn.whiteIdx ? 'var(--board-highlight)' : 'transparent',
-                color: activeIdx === turn.whiteIdx ? '#000' : 'var(--foreground)'
+                fontWeight: 600,
+                fontFamily: 'var(--font-mono)',
+                fontSize: '0.85rem',
+                background: activeIdx === turn.whiteIdx ? 'var(--color-emerald-deep)' : 'transparent',
+                color: activeIdx === turn.whiteIdx ? 'var(--color-emerald)' : 'var(--color-text)',
+                borderRadius: activeIdx === turn.whiteIdx ? '3px' : '0',
+                transition: 'background 0.15s ease',
               }}
             >
               {turn.white}
@@ -95,11 +129,15 @@ export default function MoveHistory({ moves, selectedIndex = -1, onSelect, onNav
               onClick={() => interactive && turn.black && onSelect?.(turn.blackIdx)}
               style={{ 
                 flex: 1, 
-                padding: '0.25rem 0.75rem',
+                padding: '4px 10px',
                 cursor: (interactive && turn.black) ? 'pointer' : 'default',
-                fontWeight: 'bold',
-                background: activeIdx === turn.blackIdx ? 'var(--board-highlight)' : 'transparent',
-                color: activeIdx === turn.blackIdx ? '#000' : 'var(--foreground)'
+                fontWeight: 600,
+                fontFamily: 'var(--font-mono)',
+                fontSize: '0.85rem',
+                background: activeIdx === turn.blackIdx ? 'var(--color-emerald-deep)' : 'transparent',
+                color: activeIdx === turn.blackIdx ? 'var(--color-emerald)' : 'var(--color-text)',
+                borderRadius: activeIdx === turn.blackIdx ? '3px' : '0',
+                transition: 'background 0.15s ease',
               }}
             >
               {turn.black || ''}
@@ -113,32 +151,27 @@ export default function MoveHistory({ moves, selectedIndex = -1, onSelect, onNav
         <div style={{ 
           display: 'flex', 
           borderTop: '1px solid var(--panel-border)',
-          background: 'rgba(0,0,0,0.2)'
         }}>
-          <button 
-            type="button"
-            onClick={() => onNav?.('start')}
-            style={{ flex: 1, padding: '0.75rem', background: 'transparent', border: 'none', borderRight: '1px solid var(--panel-border)', color: '#fff', cursor: 'pointer', fontWeight: 'bold' }}>
-            Start
-          </button>
-          <button 
-            type="button"
-            onClick={() => onNav?.('prev')}
-            style={{ flex: 1, padding: '0.75rem', background: 'transparent', border: 'none', borderRight: '1px solid var(--panel-border)', color: '#fff', cursor: 'pointer', fontWeight: 'bold' }}>
-            Prev
-          </button>
-          <button 
-            type="button"
-            onClick={() => onNav?.('next')}
-            style={{ flex: 1, padding: '0.75rem', background: 'transparent', border: 'none', borderRight: '1px solid var(--panel-border)', color: '#fff', cursor: 'pointer', fontWeight: 'bold' }}>
-            Next
-          </button>
-          <button 
-            type="button"
-            onClick={() => onNav?.('end')}
-            style={{ flex: 1, padding: '0.75rem', background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: 'bold' }}>
-            End
-          </button>
+          <button type="button" onClick={() => onNav?.('start')}
+            style={navBtnStyle}
+            onMouseEnter={e => e.currentTarget.style.color = 'var(--color-text)'}
+            onMouseLeave={e => e.currentTarget.style.color = 'var(--color-text-dim)'}
+          >⏮</button>
+          <button type="button" onClick={() => onNav?.('prev')}
+            style={navBtnStyle}
+            onMouseEnter={e => e.currentTarget.style.color = 'var(--color-text)'}
+            onMouseLeave={e => e.currentTarget.style.color = 'var(--color-text-dim)'}
+          >◀</button>
+          <button type="button" onClick={() => onNav?.('next')}
+            style={navBtnStyle}
+            onMouseEnter={e => e.currentTarget.style.color = 'var(--color-text)'}
+            onMouseLeave={e => e.currentTarget.style.color = 'var(--color-text-dim)'}
+          >▶</button>
+          <button type="button" onClick={() => onNav?.('end')}
+            style={{ ...navBtnStyle, borderRight: 'none' }}
+            onMouseEnter={e => e.currentTarget.style.color = 'var(--color-text)'}
+            onMouseLeave={e => e.currentTarget.style.color = 'var(--color-text-dim)'}
+          >⏭</button>
         </div>
       )}
     </div>

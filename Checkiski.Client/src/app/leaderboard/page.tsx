@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 export default function LeaderboardPage() {
   const [players, setPlayers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -16,35 +17,102 @@ export default function LeaderboardPage() {
         setLoading(false);
       })
       .catch(err => {
-        console.error(err);
+        setError(err.message || 'Unable to connect to the arena.');
         setLoading(false);
       });
   }, []);
 
+  const getRankStyle = (index: number) => {
+    if (index === 0) return { color: '#FFD700', textShadow: '0 0 10px rgba(255,215,0,0.3)' };
+    if (index === 1) return { color: '#C0C0C0', textShadow: '0 0 8px rgba(192,192,192,0.2)' };
+    if (index === 2) return { color: '#CD7F32', textShadow: '0 0 8px rgba(205,127,50,0.2)' };
+    return { color: 'var(--color-text-dim)' };
+  };
+
+  const getRankIcon = (index: number) => {
+    if (index === 0) return '👑';
+    if (index === 1) return '🥈';
+    if (index === 2) return '🥉';
+    return `#${index + 1}`;
+  };
+
   return (
-    <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
-      <h1 className="text-hero" style={{ marginBottom: '2rem', textAlign: 'center' }}>Global Leaderboard</h1>
+    <div style={{
+      padding: 'calc(80px + var(--space-2xl)) var(--space-xl) var(--space-2xl)',
+      maxWidth: '800px',
+      margin: '0 auto',
+    }}>
+      {/* Header */}
+      <div style={{ textAlign: 'center', marginBottom: 'var(--space-3xl)' }}>
+        <p className="text-caption" style={{ color: 'var(--color-gold-dim)', marginBottom: 'var(--space-sm)' }}>
+          Hall of Champions
+        </p>
+        <h1 className="text-hero" style={{ fontSize: 'clamp(2rem, 5vw, 3rem)' }}>
+          Leaderboard
+        </h1>
+      </div>
       
-      <div className="glass-panel" style={{ overflow: 'hidden' }}>
+      <div className="glass-panel" style={{
+        overflow: 'hidden',
+        animation: 'fadeInUp 0.6s var(--ease-out) forwards',
+      }}>
         {loading ? (
-          <p style={{ textAlign: 'center', padding: '2rem', color: 'var(--foreground)' }}>Loading top players...</p>
+          <div style={{ textAlign: 'center', padding: 'var(--space-3xl)', color: 'var(--color-text-dim)' }}>
+            <div style={{
+              width: '40px', height: '40px', border: '3px solid var(--color-muted)',
+              borderTop: '3px solid var(--color-gold)', borderRadius: '50%',
+              animation: 'spin 1s linear infinite', margin: '0 auto var(--space-md)',
+            }} />
+            Loading rankings...
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+          </div>
+        ) : error ? (
+          <div style={{ padding: 'var(--space-4xl) var(--space-2xl)', textAlign: 'center', color: 'var(--color-danger)' }}>
+            <div style={{ fontSize: '2.5rem', marginBottom: 'var(--space-md)', opacity: 0.8 }}>⚠️</div>
+            <h2 className="text-heading" style={{ fontSize: '1.2rem', marginBottom: 'var(--space-sm)' }}>
+              Connection Lost
+            </h2>
+            <p className="text-body" style={{ color: 'var(--color-text-dim)' }}>{error}</p>
+          </div>
+        ) : players.length === 0 ? (
+          <div style={{ padding: 'var(--space-3xl)', textAlign: 'center' }}>
+            <p className="text-body">No players found yet.</p>
+          </div>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
-              <tr style={{ background: 'rgba(255,255,255,0.05)' }}>
-                <th style={{ padding: '1rem', color: 'var(--accent-secondary)' }}>Rank</th>
-                <th style={{ padding: '1rem', color: 'var(--accent-secondary)' }}>Player</th>
-                <th style={{ padding: '1rem', color: 'var(--accent-secondary)' }}>Country</th>
-                <th style={{ padding: '1rem', color: 'var(--accent-secondary)' }}>Rating</th>
+              <tr style={{ borderBottom: '1px solid var(--panel-border)' }}>
+                <th style={{ padding: 'var(--space-md) var(--space-lg)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.8rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--color-text-faint)' }}>Rank</th>
+                <th style={{ padding: 'var(--space-md) var(--space-lg)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.8rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--color-text-faint)' }}>Player</th>
+                <th style={{ padding: 'var(--space-md) var(--space-lg)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.8rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--color-text-faint)' }}>Country</th>
+                <th style={{ padding: 'var(--space-md) var(--space-lg)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.8rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--color-text-faint)', textAlign: 'right' }}>Rating</th>
               </tr>
             </thead>
             <tbody>
               {players.map((p, index) => (
-                <tr key={p.id} style={{ borderTop: '1px solid var(--board-border)', cursor: 'pointer' }} onClick={() => router.push(`/profile/${p.username}`)}>
-                  <td style={{ padding: '1rem', fontWeight: 'bold' }}>#{index + 1}</td>
-                  <td style={{ padding: '1rem', color: 'var(--accent-primary)', fontWeight: 'bold' }}>{p.username}</td>
-                  <td style={{ padding: '1rem' }}>{p.country || 'Unknown'}</td>
-                  <td style={{ padding: '1rem', fontWeight: '800' }}>{p.rating}</td>
+                <tr
+                  key={p.id}
+                  style={{
+                    borderBottom: '1px solid var(--panel-border)',
+                    cursor: 'pointer',
+                    transition: 'background 0.2s ease',
+                  }}
+                  onClick={() => router.push(`/profile/${p.username}`)}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(46,204,113,0.04)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                >
+                  <td style={{ padding: 'var(--space-md) var(--space-lg)', fontWeight: 'bold', fontSize: index < 3 ? '1.2rem' : '0.9rem', ...getRankStyle(index) }}>
+                    {getRankIcon(index)}
+                  </td>
+                  <td style={{ padding: 'var(--space-md) var(--space-lg)', color: 'var(--color-text)', fontFamily: 'var(--font-display)', fontWeight: 600 }}>
+                    {p.username}
+                  </td>
+                  <td style={{ padding: 'var(--space-md) var(--space-lg)', color: 'var(--color-text-dim)', fontSize: '0.9rem' }}>
+                    {p.country || '—'}
+                  </td>
+                  <td style={{ padding: 'var(--space-md) var(--space-lg)', fontFamily: 'var(--font-mono)', fontWeight: 'bold', textAlign: 'right', color: 'var(--color-emerald)', fontSize: '1rem' }}>
+                    {p.rating}
+                  </td>
                 </tr>
               ))}
             </tbody>

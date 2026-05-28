@@ -12,74 +12,128 @@ export default function GameCreator({ onCreate, onClose }: { onCreate: (config: 
     onCreate({ color, timeControl, isRated });
   };
 
+  const timeIcons: Record<string, string> = { bullet: '⚡', blitz: '🔥', rapid: '⏱', classical: '🏛' };
+  const colorIcons: Record<string, string> = { white: '♔', random: '🎲', black: '♚' };
+
   return (
-    <div style={{
-      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.7)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
-    }}>
+    <div
+      style={{
+        position: 'fixed', inset: 0,
+        background: 'rgba(5,5,7,0.85)',
+        backdropFilter: 'blur(8px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        zIndex: 2000,
+        animation: 'fadeIn 0.3s ease forwards',
+      }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
       <div className="glass-panel" style={{
-        padding: '2rem', width: '400px', maxWidth: '90vw'
+        padding: 'var(--space-2xl)',
+        width: '420px',
+        maxWidth: '90vw',
+        animation: 'fadeInUp 0.4s var(--ease-out) forwards',
+        border: '1px solid rgba(46,204,113,0.15)',
       }}>
-        <h2 style={{ marginBottom: '1.5rem', textAlign: 'center', color: '#fff' }}>Create Game</h2>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          
+        <div style={{ textAlign: 'center', marginBottom: 'var(--space-xl)' }}>
+          <p className="text-caption" style={{ color: 'var(--color-emerald-dim)', marginBottom: 'var(--space-xs)' }}>
+            New Match
+          </p>
+          <h2 className="text-display" style={{ fontSize: '1.5rem' }}>Create Game</h2>
+        </div>
+
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xl)' }}>
+          {/* Time Control */}
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', color: 'var(--accent-secondary, #aaa)' }}>Time Control</label>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              {['bullet', 'blitz', 'rapid', 'classical'].map(tc => (
-                <button 
-                  type="button" 
+            <label className="input-label">Time Control</label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'var(--space-sm)' }}>
+              {(['bullet', 'blitz', 'rapid', 'classical'] as const).map(tc => (
+                <button
+                  type="button"
                   key={tc}
-                  onClick={() => setTimeControl(tc as any)}
+                  onClick={() => setTimeControl(tc)}
                   style={{
-                    flex: 1, padding: '0.5rem', borderRadius: '4px', cursor: 'pointer',
-                    background: timeControl === tc ? 'var(--accent-primary, #4caf50)' : 'rgba(255,255,255,0.1)',
-                    color: '#fff', border: 'none', textTransform: 'capitalize'
+                    padding: '10px 4px',
+                    borderRadius: 'var(--radius-sm)',
+                    cursor: 'pointer',
+                    background: timeControl === tc ? 'var(--color-emerald-deep)' : 'rgba(255,255,255,0.03)',
+                    color: timeControl === tc ? 'var(--color-emerald)' : 'var(--color-text-dim)',
+                    border: timeControl === tc ? '1px solid var(--color-emerald-dim)' : '1px solid var(--panel-border)',
+                    textTransform: 'capitalize',
+                    fontFamily: 'var(--font-display)',
+                    fontWeight: 500,
+                    fontSize: '0.78rem',
+                    transition: 'all 0.2s ease',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '4px',
                   }}
                 >
+                  <span style={{ fontSize: '1rem' }}>{timeIcons[tc]}</span>
                   {tc}
                 </button>
               ))}
             </div>
           </div>
 
+          {/* Color */}
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', color: 'var(--accent-secondary, #aaa)' }}>Color</label>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              {['white', 'random', 'black'].map(c => (
-                <button 
-                  type="button" 
+            <label className="input-label">Play As</label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-sm)' }}>
+              {(['white', 'random', 'black'] as const).map(c => (
+                <button
+                  type="button"
                   key={c}
-                  onClick={() => setColor(c as any)}
+                  onClick={() => setColor(c)}
                   style={{
-                    flex: 1, padding: '0.5rem', borderRadius: '4px', cursor: 'pointer',
-                    background: color === c ? 'var(--accent-primary, #4caf50)' : 'rgba(255,255,255,0.1)',
-                    color: '#fff', border: 'none', textTransform: 'capitalize'
+                    padding: '12px 8px',
+                    borderRadius: 'var(--radius-sm)',
+                    cursor: 'pointer',
+                    background: color === c ? 'var(--color-emerald-deep)' : 'rgba(255,255,255,0.03)',
+                    color: color === c ? 'var(--color-emerald)' : 'var(--color-text-dim)',
+                    border: color === c ? '1px solid var(--color-emerald-dim)' : '1px solid var(--panel-border)',
+                    textTransform: 'capitalize',
+                    fontFamily: 'var(--font-display)',
+                    fontWeight: 500,
+                    fontSize: '0.85rem',
+                    transition: 'all 0.2s ease',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '4px',
                   }}
                 >
+                  <span style={{ fontSize: '1.2rem' }}>{colorIcons[c]}</span>
                   {c}
                 </button>
               ))}
             </div>
           </div>
 
-          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: '#fff' }}>
-            <input 
-              type="checkbox" 
-              checked={isRated} 
-              onChange={e => setIsRated(e.target.checked)} 
-              style={{ width: '1.2rem', height: '1.2rem' }}
+          {/* Rated */}
+          <label style={{
+            display: 'flex', alignItems: 'center', gap: 'var(--space-sm)',
+            cursor: 'pointer',
+            color: 'var(--color-text)',
+            fontFamily: 'var(--font-display)',
+            fontSize: '0.9rem',
+          }}>
+            <input
+              type="checkbox"
+              checked={isRated}
+              onChange={e => setIsRated(e.target.checked)}
+              style={{ width: '1.1rem', height: '1.1rem', accentColor: 'var(--color-emerald)' }}
             />
             <span>Rated Game</span>
           </label>
 
-          <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
-            <button type="button" onClick={onClose} className="btn-secondary" style={{ flex: 1 }}>
+          {/* Actions */}
+          <div style={{ display: 'flex', gap: 'var(--space-md)', marginTop: 'var(--space-sm)' }}>
+            <button type="button" onClick={onClose} className="btn-secondary" style={{ flex: 1, padding: '12px' }}>
               Cancel
             </button>
-            <button type="submit" className="btn-primary" style={{ flex: 1 }}>
-              Create
+            <button type="submit" className="btn-primary" style={{ flex: 1, padding: '12px' }}>
+              Create Match
             </button>
           </div>
         </form>

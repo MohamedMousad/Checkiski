@@ -23,15 +23,8 @@ export default function Settings() {
 
     const fetchProfile = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-        const res = await fetch(`${apiUrl}/api/player/profile/me`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        if (!res.ok) throw new Error('Failed to fetch profile');
-        const data = await res.json();
+        const { ApiService } = await import('../../services/api');
+        const data = await ApiService.get<any>('/api/player/profile/me');
         setFormData({
           username: data.username || '',
           bio: data.bio || '',
@@ -57,29 +50,13 @@ export default function Settings() {
     setSaving(true);
     setError(null);
     try {
-      const token = localStorage.getItem('token');
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-      
-      const res = await fetch(`${apiUrl}/api/player/profile`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          newUsername: formData.username,
-          bio: formData.bio,
-          country: formData.country,
-          profilePictureUrl: formData.profilePictureUrl
-        })
+      const { ApiService } = await import('../../services/api');
+      const data = await ApiService.put<any>('/api/player/profile', {
+        newUsername: formData.username,
+        bio: formData.bio,
+        country: formData.country,
+        profilePictureUrl: formData.profilePictureUrl
       });
-
-      if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(errText || 'Failed to update profile');
-      }
-
-      const data = await res.json();
       if (data.token) {
         localStorage.setItem('token', data.token);
       }
@@ -97,69 +74,110 @@ export default function Settings() {
     }
   };
 
-  if (loading) return <div style={{ textAlign: 'center', marginTop: '5rem' }}>Loading settings...</div>;
+  if (loading) return (
+    <div style={{
+      textAlign: 'center',
+      padding: 'calc(80px + var(--space-4xl)) var(--space-xl)',
+      color: 'var(--color-text-dim)',
+    }}>
+      <div style={{
+        width: '40px', height: '40px', border: '3px solid var(--color-muted)',
+        borderTop: '3px solid var(--color-emerald)', borderRadius: '50%',
+        animation: 'spin 1s linear infinite', margin: '0 auto var(--space-md)',
+      }} />
+      Loading settings...
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem 1rem' }}>
-      <div className="glass-panel" style={{ width: '100%', maxWidth: '600px', padding: '3rem', borderRadius: '12px' }}>
-        <h1 style={{ marginBottom: '2rem', fontSize: '2rem' }}>Settings</h1>
+    <div style={{
+      display: 'flex',
+      justifyContent: 'center',
+      padding: 'calc(80px + var(--space-2xl)) var(--space-xl) var(--space-2xl)',
+      position: 'relative',
+    }}>
+      {/* Atmospheric glow */}
+      <div style={{
+        position: 'absolute',
+        top: '30%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: '500px',
+        height: '500px',
+        background: 'radial-gradient(circle, rgba(46,204,113,0.04) 0%, transparent 70%)',
+        pointerEvents: 'none',
+        filter: 'blur(60px)',
+      }} />
+
+      <div className="glass-panel" style={{
+        width: '100%',
+        maxWidth: '580px',
+        padding: 'var(--space-2xl)',
+        position: 'relative',
+        zIndex: 1,
+        animation: 'fadeInUp 0.6s var(--ease-out) forwards',
+      }}>
+        <div style={{ marginBottom: 'var(--space-2xl)' }}>
+          <p className="text-caption" style={{ color: 'var(--color-emerald-dim)', marginBottom: 'var(--space-xs)' }}>
+            Your Profile
+          </p>
+          <h1 className="text-display" style={{ fontSize: '1.8rem' }}>Settings</h1>
+        </div>
         
-        {error && <div style={{ color: '#ff4444', marginBottom: '1rem' }}>{error}</div>}
+        {error && (
+          <div style={{
+            padding: 'var(--space-md)',
+            background: 'rgba(231, 76, 60, 0.1)',
+            border: '1px solid rgba(231, 76, 60, 0.2)',
+            borderRadius: 'var(--radius-sm)',
+            color: 'var(--color-danger)',
+            marginBottom: 'var(--space-lg)',
+            fontSize: '0.9rem',
+          }}>
+            {error}
+          </div>
+        )}
         
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Username</label>
-            <input 
-              type="text" 
-              name="username" 
-              value={formData.username} 
-              onChange={handleChange} 
-              className="glass-input" 
-              style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)', color: 'white' }} 
-            />
+            <label className="input-label">Username</label>
+            <input type="text" name="username" value={formData.username} onChange={handleChange} className="input-field" />
           </div>
 
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Profile Picture URL</label>
-            <input 
-              type="text" 
-              name="profilePictureUrl" 
-              value={formData.profilePictureUrl} 
-              onChange={handleChange} 
-              className="glass-input" 
-              style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)', color: 'white' }} 
-            />
+            <label className="input-label">Profile Picture URL</label>
+            <input type="text" name="profilePictureUrl" value={formData.profilePictureUrl} onChange={handleChange} className="input-field" placeholder="https://..." />
           </div>
 
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Country</label>
-            <input 
-              type="text" 
-              name="country" 
-              value={formData.country} 
-              onChange={handleChange} 
-              className="glass-input" 
-              style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)', color: 'white' }} 
-            />
+            <label className="input-label">Country</label>
+            <input type="text" name="country" value={formData.country} onChange={handleChange} className="input-field" placeholder="Your country" />
           </div>
 
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Bio</label>
-            <textarea 
-              name="bio" 
-              value={formData.bio} 
-              onChange={handleChange} 
-              className="glass-input" 
+            <label className="input-label">Bio</label>
+            <textarea
+              name="bio"
+              value={formData.bio}
+              onChange={handleChange}
               rows={4}
-              style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)', color: 'white', resize: 'vertical' }} 
+              className="input-field"
+              style={{ resize: 'vertical', fontFamily: 'var(--font-body)' }}
+              placeholder="Tell us about yourself..."
             />
           </div>
 
-          <button 
-            type="submit" 
-            className="btn-primary" 
+          <button
+            type="submit"
+            className="btn-primary"
             disabled={saving}
-            style={{ marginTop: '1rem', padding: '1rem', fontSize: '1.1rem', cursor: saving ? 'not-allowed' : 'pointer' }}
+            style={{
+              marginTop: 'var(--space-sm)',
+              width: '100%',
+              opacity: saving ? 0.7 : 1,
+              cursor: saving ? 'not-allowed' : 'pointer',
+            }}
           >
             {saving ? 'Saving...' : 'Save Changes'}
           </button>

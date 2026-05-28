@@ -4,34 +4,54 @@ import React from 'react';
 import PuzzleBoard from '../../components/PuzzleBoard';
 
 export default function PuzzlesPage() {
-  // Mock puzzle: White to move and mate in 2
-  // FEN: r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 1
-  // Solution: Qxf7#
   const puzzle = {
     fen: 'r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 1',
     solution: ['Qxf7#']
   };
 
-  // Mock puzzle 2: White to move, discover attack
-  // FEN: r1bq1rk1/1pp2ppp/p1np1n2/2b1p3/2B1P3/2PP1N2/PP3PPP/RNBQ1RK1 w - - 0 1
-  // Let's use a simpler known puzzle:
-  // "Back rank mate"
   const puzzle2 = {
     fen: '6k1/5ppp/8/8/8/8/5PPP/R5K1 w - - 0 1',
     solution: ['Ra8#']
   };
 
   return (
-    <main style={{ 
-      display: 'flex', flexDirection: 'column', alignItems: 'center', 
-      minHeight: '100vh', padding: '2rem' 
+    <main style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      minHeight: '100vh',
+      padding: 'calc(80px + var(--space-2xl)) var(--space-xl) var(--space-2xl)',
     }}>
-      <h1 className="text-gradient" style={{ fontSize: '3rem', marginBottom: '2rem' }}>Puzzles</h1>
-      <p style={{ color: 'var(--foreground)', opacity: 0.8, marginBottom: '3rem' }}>
-        Sharpen your tactics by solving these chess puzzles.
-      </p>
+      {/* Header */}
+      <div style={{ textAlign: 'center', marginBottom: 'var(--space-3xl)' }}>
+        <p className="text-caption" style={{ color: 'var(--color-gold-dim)', marginBottom: 'var(--space-sm)' }}>
+          Train Your Vision
+        </p>
+        <h1 className="text-hero" style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', marginBottom: 'var(--space-md)' }}>
+          Tactical Puzzles
+        </h1>
+        <p className="text-body" style={{ maxWidth: '440px', margin: '0 auto' }}>
+          Sharpen your pattern recognition. Find the best move.
+        </p>
+      </div>
 
-      <PuzzleBoard fen={puzzle2.fen} solution={puzzle2.solution} />
+      {/* Puzzle container */}
+      <div className="glass-panel" style={{
+        padding: 'var(--space-xl)',
+        animation: 'fadeInUp 0.6s var(--ease-out) forwards',
+        maxWidth: '700px',
+        width: '100%',
+      }}>
+        <div style={{ textAlign: 'center', marginBottom: 'var(--space-lg)' }}>
+          <h2 className="text-heading" style={{ fontSize: '1.2rem', marginBottom: 'var(--space-xs)' }}>
+            Back Rank Mate
+          </h2>
+          <p className="text-caption" style={{ color: 'var(--color-emerald-dim)' }}>
+            White to move — Find the checkmate
+          </p>
+        </div>
+        <PuzzleBoard fen={puzzle2.fen} solution={puzzle2.solution} />
+      </div>
     </main>
   );
 }

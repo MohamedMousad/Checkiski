@@ -16,18 +16,8 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-      const res = await fetch(`${apiUrl}/api/player/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-
-      if (!res.ok) {
-        throw new Error('Invalid credentials');
-      }
-
-      const data = await res.json();
+      const { ApiService } = await import('../../services/api');
+      const data = await ApiService.post<any>('/api/player/login', { username, password });
       localStorage.setItem('token', data.token);
       localStorage.setItem('playerId', data.playerId);
       localStorage.setItem('username', data.username || username);
@@ -42,53 +32,109 @@ export default function Login() {
   };
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 'calc(100vh - 70px)' }}>
-      <div className="glass-panel" style={{ padding: '3rem', borderRadius: '12px', width: '100%', maxWidth: '400px' }}>
-        <h1 style={{ textAlign: 'center', marginBottom: '2rem' }}>Login to Checkiski</h1>
-        
-        {error && <div style={{ color: '#ff6b6b', marginBottom: '1rem', textAlign: 'center' }}>{error}</div>}
+    <div style={{
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      minHeight: 'calc(100vh - 70px)',
+      padding: 'var(--space-xl)',
+      position: 'relative',
+    }}>
+      {/* Atmospheric glow */}
+      <div style={{
+        position: 'absolute',
+        top: '40%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: '500px',
+        height: '500px',
+        background: 'radial-gradient(circle, rgba(46,204,113,0.06) 0%, transparent 70%)',
+        pointerEvents: 'none',
+        filter: 'blur(60px)',
+      }} />
 
-        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      <div className="glass-panel" style={{
+        padding: 'var(--space-2xl) var(--space-xl)',
+        width: '100%',
+        maxWidth: '420px',
+        position: 'relative',
+        zIndex: 1,
+        animation: 'fadeInUp 0.7s var(--ease-out) forwards',
+      }}>
+        {/* Header */}
+        <div style={{ textAlign: 'center', marginBottom: 'var(--space-2xl)' }}>
+          <p className="text-caption" style={{ color: 'var(--color-emerald-dim)', marginBottom: 'var(--space-sm)' }}>
+            Welcome Back
+          </p>
+          <h1 className="text-display" style={{ fontSize: '1.8rem' }}>
+            Sign In
+          </h1>
+        </div>
+        
+        {error && (
+          <div style={{
+            padding: 'var(--space-md)',
+            background: 'rgba(231, 76, 60, 0.1)',
+            border: '1px solid rgba(231, 76, 60, 0.2)',
+            borderRadius: 'var(--radius-sm)',
+            color: 'var(--color-danger)',
+            marginBottom: 'var(--space-lg)',
+            textAlign: 'center',
+            fontSize: '0.9rem',
+          }}>
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--accent-secondary)' }}>Username</label>
+            <label className="input-label">Username</label>
             <input 
               type="text" 
               value={username} 
               onChange={e => setUsername(e.target.value)}
               required
-              style={{
-                width: '100%', padding: '0.75rem', borderRadius: '4px',
-                background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.2)',
-                color: '#fff', outline: 'none'
-              }}
+              className="input-field"
+              placeholder="Enter your username"
             />
           </div>
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--accent-secondary)' }}>Password</label>
+            <label className="input-label">Password</label>
             <input 
               type="password" 
               value={password} 
               onChange={e => setPassword(e.target.value)}
               required
-              style={{
-                width: '100%', padding: '0.75rem', borderRadius: '4px',
-                background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.2)',
-                color: '#fff', outline: 'none'
-              }}
+              className="input-field"
+              placeholder="Enter your password"
             />
           </div>
           
-          <button type="submit" disabled={loading} style={{
-            padding: '0.75rem', borderRadius: '4px', cursor: loading ? 'not-allowed' : 'pointer',
-            background: 'var(--accent-primary)', border: 'none', color: '#fff', fontWeight: 'bold',
-            marginTop: '1rem', opacity: loading ? 0.7 : 1
-          }}>
-            {loading ? 'Logging in...' : 'Login'}
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn-primary"
+            style={{
+              width: '100%',
+              marginTop: 'var(--space-sm)',
+              opacity: loading ? 0.7 : 1,
+              cursor: loading ? 'not-allowed' : 'pointer',
+            }}
+          >
+            {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
 
-        <div style={{ marginTop: '2rem', textAlign: 'center', color: '#aaa' }}>
-          Don&apos;t have an account?{' '}<Link href="/register" style={{ color: 'var(--accent-primary)' }}>Register</Link>
+        <div style={{
+          marginTop: 'var(--space-2xl)',
+          textAlign: 'center',
+          color: 'var(--color-text-faint)',
+          fontSize: '0.9rem',
+        }}>
+          Don&apos;t have an account?{' '}
+          <Link href="/register" style={{ color: 'var(--color-emerald)', fontWeight: 500 }}>
+            Create one
+          </Link>
         </div>
       </div>
     </div>

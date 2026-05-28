@@ -9,58 +9,63 @@ interface GameControlsProps {
 }
 
 export default function GameControls({ onResign, onDraw, onAbort, onFlipBoard }: GameControlsProps) {
-  const buttonStyle = {
-    padding: '0.75rem 1rem',
-    borderRadius: '8px',
+  const buttonBase: React.CSSProperties = {
+    padding: '10px 14px',
+    borderRadius: 'var(--radius-sm)',
     cursor: 'pointer',
-    background: 'rgba(255,255,255,0.05)',
-    border: '1px solid rgba(255,255,255,0.1)',
-    color: '#fff',
-    fontWeight: 'bold',
-    transition: 'all 0.2s',
+    background: 'rgba(255,255,255,0.03)',
+    border: '1px solid var(--panel-border)',
+    color: 'var(--color-text-dim)',
+    fontFamily: 'var(--font-display)',
+    fontWeight: 500,
+    fontSize: '0.82rem',
+    transition: 'all 0.2s ease',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: '0.5rem',
+    gap: '6px',
     flex: '1 1 auto',
-    minWidth: '100px'
   };
 
   return (
-    <div className="glass-panel" style={{
-      display: 'flex', gap: '1rem', padding: '1rem', borderRadius: '8px', flexWrap: 'wrap',
-      background: 'rgba(20,20,25,0.8)',
-      border: '1px solid rgba(255,255,255,0.1)'
+    <div style={{
+      display: 'flex',
+      gap: 'var(--space-sm)',
+      padding: 'var(--space-md)',
+      background: 'var(--panel-bg)',
+      border: '1px solid var(--panel-border)',
+      borderRadius: 'var(--radius-md)',
+      flexWrap: 'wrap',
     }}>
-      <button 
-        style={{ ...buttonStyle, color: '#ff6b6b' }} 
+      <button
+        style={{ ...buttonBase, color: 'var(--color-danger)' }}
         onClick={onResign}
-        onMouseOver={e => e.currentTarget.style.background = 'rgba(255, 107, 107, 0.1)'}
-        onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(231, 76, 60, 0.1)'; e.currentTarget.style.borderColor = 'rgba(231, 76, 60, 0.3)'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = 'var(--panel-border)'; }}
       >
         🏳️ Resign
       </button>
-      <button 
-        style={{ ...buttonStyle }} 
+      <button
+        style={buttonBase}
         onClick={onDraw}
-        onMouseOver={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
-        onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'var(--color-text)'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.color = 'var(--color-text-dim)'; }}
       >
         🤝 Draw
       </button>
-      <button 
-        style={{ ...buttonStyle }} 
+      <button
+        style={buttonBase}
         onClick={onAbort}
-        onMouseOver={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
-        onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'var(--color-text)'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.color = 'var(--color-text-dim)'; }}
       >
         ❌ Abort
       </button>
-      <button 
-        style={{ ...buttonStyle, color: 'var(--accent-secondary, #4caf50)' }} 
+      <button
+        style={{ ...buttonBase, color: 'var(--color-emerald-dim)' }}
         onClick={onFlipBoard}
-        onMouseOver={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
-        onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+        onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-emerald-mist)'; e.currentTarget.style.color = 'var(--color-emerald)'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.color = 'var(--color-emerald-dim)'; }}
       >
         🔃 Flip
       </button>
