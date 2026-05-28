@@ -115,5 +115,12 @@ namespace Checkiski.WebApi.Controllers
                 profile.CreatedAt
             });
         }
+
+        [HttpGet("leaderboard")]
+        public async Task<IActionResult> GetLeaderboard()
+        {
+            var leaderboard = await _mediator.Send(new Checkiski.Application.Players.Queries.GetLeaderboard.GetLeaderboardQuery());
+            return Ok(leaderboard);
+        }
     }
 }

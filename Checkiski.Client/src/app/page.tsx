@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import GameCreator from '../components/GameCreator';
 
+import { ApiService } from '../services/api';
+
 export default function Home() {
   const [showCreator, setShowCreator] = useState(false);
   const router = useRouter();
@@ -23,40 +25,24 @@ export default function Home() {
 
     try {
       const username = localStorage.getItem('username');
-      const token = localStorage.getItem('token');
-      if (!username || !token) {
+      if (!username) {
          router.push('/login');
          return;
       }
       
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-      const res = await fetch(`${apiUrl}/api/game/create`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          hostUsername: username,
-          colorChoice: colorChoice,
-          rated: config.isRated,
-          baseMinutes: timeControlObj.baseMinutes,
-          incrementSeconds: timeControlObj.incrementSeconds,
-          gameCategory: gameCategory
-        })
+      const data = await ApiService.post<{gameId: string}>('/api/game/create', {
+        hostUsername: username,
+        colorChoice: colorChoice,
+        rated: config.isRated,
+        baseMinutes: timeControlObj.baseMinutes,
+        incrementSeconds: timeControlObj.incrementSeconds,
+        gameCategory: gameCategory
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        router.push(`/play?gameId=${data.gameId}`);
-      } else {
-        const errorText = await res.text();
-        console.error('Failed to create game:', res.status, errorText);
-        alert(`Failed to create game: ${errorText}`);
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Error creating game');
+      router.push(`/play?gameId=${data.gameId}`);
+    } catch (err: any) {
+      console.error('Failed to create game:', err);
+      alert(`Failed to create game: ${err.message}`);
     }
   };
 
@@ -67,40 +53,52 @@ export default function Home() {
       alignItems: 'center', 
       justifyContent: 'center', 
       minHeight: '100vh',
-      padding: '2rem'
+      padding: '2rem',
+      position: 'relative'
     }}>
-      <div className="glass-panel" style={{ 
-        padding: '3rem', 
+      <style>{`
+        @keyframes slideUpFade {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-stagger-1 { animation: slideUpFade 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+        .animate-stagger-2 { animation: slideUpFade 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) 0.1s forwards; opacity: 0; }
+        .animate-stagger-3 { animation: slideUpFade 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) 0.2s forwards; opacity: 0; }
+        .animate-stagger-4 { animation: slideUpFade 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) 0.3s forwards; opacity: 0; }
+      `}</style>
+      
+      <div className="glass-panel animate-stagger-1" style={{ 
+        padding: '4rem 3rem', 
         textAlign: 'center',
-        maxWidth: '600px',
-        width: '100%'
+        maxWidth: '680px',
+        width: '100%',
+        position: 'relative',
+        zIndex: 10
       }}>
-        <h1 className="text-gradient" style={{ 
-          fontSize: '3.5rem', 
+        <h1 className="text-hero animate-stagger-2" style={{ 
+          fontSize: 'clamp(3rem, 8vw, 4.5rem)', 
           marginBottom: '1rem',
-          lineHeight: 1.2
+          lineHeight: 1.1,
+          marginTop: 0
         }}>
           Checkiski
         </h1>
-        <p style={{ 
-          fontSize: '1.125rem', 
-          color: 'var(--foreground)',
-          opacity: 0.8,
-          marginBottom: '2.5rem',
-          lineHeight: 1.6
+        <p className="animate-stagger-3" style={{ 
+          fontSize: '1.25rem', 
+          color: 'oklch(0.85 0.01 var(--bg-h))',
+          marginBottom: '3rem',
+          lineHeight: 1.6,
+          fontWeight: 300
         }}>
           Experience the next evolution of online chess. Real-time multiplayer, 
           powered by a modern engine, wrapped in a beautiful interface.
         </p>
         
-        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-          <button onClick={() => setShowCreator(true)} className="btn-primary" style={{ fontSize: '1.125rem' }}>
+        <div className="animate-stagger-4" style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <button onClick={() => setShowCreator(true)} className="btn-primary" style={{ padding: '16px 36px', fontSize: '1.2rem' }}>
             Play Online
           </button>
-          <button onClick={() => router.push('/computer')} className="btn-primary" style={{ 
-            fontSize: '1.125rem',
-            background: 'var(--accent-secondary)'
-          }}>
+          <button onClick={() => router.push('/computer')} className="btn-secondary" style={{ padding: '16px 36px', fontSize: '1.2rem' }}>
             Play Computer
           </button>
         </div>

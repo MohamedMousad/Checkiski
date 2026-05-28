@@ -52,3 +52,51 @@ ARCHITECTURE.md
 CODE_REVIEW_AND_GUIDELINES.md
 Checkiski_Core_Documentation.md
 FEATURES.md
+CONSTITUTION.md
+CLAUDE.md
+AGENTS.md
+PRODUCT.md
+DESIGN.md
+SPECIFICATION.md
+.specify/
+
+# UI Images and Assets
+ui_designs/
+*.png
+*.jpg
+*.jpeg
+*.svg
+
+# Agent Skills and Scratch
+.agents/
+skills-lock.json
+scratch.js
+*.zip
+download_impeccable.py
+*.ps1
+
+# CI/CD
+.github/
+
+# Flutter Mobile App
+Checkiski.Mobile/build/
+Checkiski.Mobile/.dart_tool/
+Checkiski.Mobile/.flutter-plugins
+Checkiski.Mobile/.flutter-plugins-dependencies
+Checkiski.Mobile/.packages
+Checkiski.Mobile/.pub-cache/
+Checkiski.Mobile/.pub/
+Checkiski.Mobile/android/**/*.iml
+Checkiski.Mobile/ios/Pods/
+Checkiski.Mobile/ios/.symlinks/
+Checkiski.Mobile/ios/Flutter/Flutter.framework/
+Checkiski.Mobile/ios/Flutter/Flutter.podspec
+Checkiski.Mobile/ios/Flutter/Generated.xcconfig
+Checkiski.Mobile/ios/Flutter/app.flx
+Checkiski.Mobile/ios/Flutter/app.zip
+Checkiski.Mobile/ios/Flutter/flutter_assets/
+Checkiski.Mobile/ios/Flutter/flutter_export_environment.sh
+Checkiski.Mobile/ios/ServiceDefinitions.json
+Checkiski.Mobile/ios/Runner/GeneratedPluginRegistrant.*
+Checkiski.Mobile/macos/Flutter/GeneratedPluginRegistrant.swift
+Checkiski.Mobile/macos/Flutter/ephemeral/

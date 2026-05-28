@@ -5,6 +5,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import type { HubConnection } from '@microsoft/signalr';
 import { Chess, Square } from 'chess.js';
 import { useStockfish } from '../hooks/useStockfish';
+import { ApiService } from '../services/api';
 
 import MoveHistory from './MoveHistory';
 import GameClock from './GameClock';
@@ -43,11 +44,7 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
 
   // Fetch initial game state
   useEffect(() => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-    fetch(`${apiUrl}/api/game/${gameId}`, {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-    })
-    .then(res => res.json())
+    ApiService.get<any>(`/api/game/${gameId}`)
     .then(data => {
       const parseTs = (ts: string) => {
         if (!ts) return 300;
@@ -136,11 +133,8 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
         playSound(result.captured ? 'capture' : 'move');
         
         const moveString = result.lan || (result.from + result.to + (result.promotion || ''));
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-        fetch(`${apiUrl}/api/game/move`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-          body: JSON.stringify({ gameId, moveString, playerId: localStorage.getItem('playerId') })
+        ApiService.post('/api/game/move', { 
+          gameId, moveString, playerId: localStorage.getItem('playerId') 
         }).catch(err => console.error(err));
       }
     } catch (e) {}
@@ -380,28 +374,16 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
           
           <GameControls 
             onResign={() => {
-              const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-              fetch(`${apiUrl}/api/game/resign`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-                body: JSON.stringify({ gameId, playerId: localStorage.getItem('playerId') })
-              });
+              ApiService.post('/api/game/resign', { gameId, playerId: localStorage.getItem('playerId') })
+                .catch(console.error);
             }}
             onDraw={() => {
-              const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-              fetch(`${apiUrl}/api/game/draw`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-                body: JSON.stringify({ gameId, playerId: localStorage.getItem('playerId') })
-              });
+              ApiService.post('/api/game/draw', { gameId, playerId: localStorage.getItem('playerId') })
+                .catch(console.error);
             }}
             onAbort={() => {
-              const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-              fetch(`${apiUrl}/api/game/abort`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-                body: JSON.stringify({ gameId, playerId: localStorage.getItem('playerId') })
-              });
+              ApiService.post('/api/game/abort', { gameId, playerId: localStorage.getItem('playerId') })
+                .catch(console.error);
             }}
             onFlipBoard={() => setIsFlipped(f => !f)}
           />

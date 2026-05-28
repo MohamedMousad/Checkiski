@@ -31,9 +31,9 @@ export default function GameAnalysis({ pgn }: { pgn: string }) {
       game.loadPgn(pgn);
     } catch (e) {
       console.error("Invalid PGN for analysis", e);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+
       setAccuracy(0);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+
       setIsAnalyzing(false);
       return;
     }
@@ -119,8 +119,9 @@ export default function GameAnalysis({ pgn }: { pgn: string }) {
           </div>
           <div style={{ width: '100%', background: 'rgba(255,255,255,0.1)', height: '8px', borderRadius: '4px', overflow: 'hidden' }}>
              <div style={{ 
-               width: `${progress}%`, height: '100%', background: 'var(--accent-primary)',
-               transition: 'width 0.2s ease'
+               width: '100%', height: '100%', background: 'var(--accent-primary)',
+               transform: `scaleX(${progress / 100})`, transformOrigin: 'left',
+               transition: 'transform 0.2s ease'
              }} />
           </div>
         </div>

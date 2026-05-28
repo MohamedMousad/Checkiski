@@ -1,18 +1,27 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;600&display=swap');
+
 :root {
-  --background: #312e2b;
-  --foreground: #ffffff;
-  --panel-bg: #262421;
-  --panel-border: #403d39;
+  /* OKLCH Color Strategy: Committed (deep neutral with vibrant primary) */
+  --bg-h: 110; /* slight green/yellow tint for chess feel */
+  --background: oklch(0.20 0.01 var(--bg-h));
+  --foreground: oklch(0.95 0.01 var(--bg-h));
   
-  --accent-primary: #81b64c; /* Standard chess.com green */
-  --accent-hover: #95c861;
-  --accent-secondary: #454341;
+  --panel-bg: oklch(0.25 0.01 var(--bg-h) / 0.7);
+  --panel-border: oklch(0.35 0.02 var(--bg-h) / 0.5);
   
-  --board-light: #ebecd0;
-  --board-dark: #779556;
-  --board-highlight: rgba(255, 255, 51, 0.5); /* Yellow highlight for moves */
-  --board-valid-move: rgba(0, 0, 0, 0.15); /* Soft dark circle for valid moves */
-  --board-border: #2b2b2b;
+  /* Vibrant Accents */
+  --accent-primary: oklch(0.70 0.18 135); /* Vivid green */
+  --accent-hover: oklch(0.75 0.18 135);
+  --accent-secondary: oklch(0.35 0.02 var(--bg-h));
+  
+  --board-light: oklch(0.92 0.03 110);
+  --board-dark: oklch(0.60 0.12 135);
+  --board-highlight: oklch(0.90 0.15 100 / 0.5); 
+  --board-valid-move: oklch(0.10 0 0 / 0.2); 
+  --board-border: oklch(0.25 0.01 var(--bg-h));
+
+  --font-inter: 'Inter', sans-serif;
+  --font-display: 'Outfit', sans-serif;
 }
 
 html, body {
@@ -22,9 +31,10 @@ html, body {
 }
 
 body {
-  background: var(--background);
+  background: radial-gradient(circle at top right, oklch(0.28 0.03 135 / 0.4), var(--background) 70%);
+  background-attachment: fixed;
   color: var(--foreground);
-  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--font-inter);
   margin: 0;
   padding: 0;
   display: flex;
@@ -40,66 +50,77 @@ body {
 a {
   color: var(--accent-primary);
   text-decoration: none;
-  transition: color 0.1s ease;
+  transition: color 0.15s ease-out;
 }
 
 a:hover {
   color: var(--accent-hover);
 }
 
-/* Redefined legacy classes to match new solid theme */
+/* Glassmorphism Panel */
 .glass-panel {
   background: var(--panel-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--panel-border);
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
+/* Premium Buttons */
 .btn-primary {
-  background: var(--accent-primary);
-  color: #fff;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 4px;
-  font-weight: bold;
+  background: linear-gradient(135deg, var(--accent-primary), oklch(0.65 0.18 140));
+  color: oklch(0.15 0.05 135); /* Dark high contrast text */
+  border: 1px solid oklch(0.80 0.18 135 / 0.5);
+  padding: 14px 28px;
+  border-radius: 8px;
+  font-family: var(--font-display);
+  font-weight: 600;
   font-size: 1.1rem;
+  letter-spacing: 0.5px;
   cursor: pointer;
-  transition: background 0.1s ease;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+  box-shadow: 0 4px 12px oklch(0.70 0.18 135 / 0.3), inset 0 1px 0 rgba(255,255,255,0.3);
   text-transform: uppercase;
 }
 
 .btn-primary:hover {
-  background: var(--accent-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px oklch(0.70 0.18 135 / 0.4), inset 0 1px 0 rgba(255,255,255,0.4);
 }
 
 .btn-primary:active {
-  transform: translateY(4px);
-  box-shadow: none;
-}
-
-.text-gradient {
-  color: var(--foreground);
-  font-weight: 800;
-  text-transform: uppercase;
+  transform: translateY(1px);
+  box-shadow: 0 2px 4px oklch(0.70 0.18 135 / 0.4);
 }
 
 .btn-secondary {
   background: var(--accent-secondary);
-  color: #fff;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 4px;
-  font-weight: bold;
+  color: var(--foreground);
+  border: 1px solid var(--panel-border);
+  padding: 14px 28px;
+  border-radius: 8px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.1rem;
   cursor: pointer;
-  transition: background 0.1s ease;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .btn-secondary:hover {
-  background: #555351;
+  background: oklch(0.40 0.02 var(--bg-h));
+  border-color: oklch(0.50 0.02 var(--bg-h));
+}
+
+.text-hero {
+  color: var(--foreground);
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -1px;
 }
 
 /* Layout Utilities */
@@ -127,7 +148,7 @@ a:hover {
   min-width: 300px;
   display: flex;
   flex-direction: column;
-  height: 600px; /* Standardize height with board */
+  height: 600px;
 }
 
 @media (max-width: 900px) {

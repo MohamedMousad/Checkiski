@@ -19,10 +19,7 @@ export default function GameCreator({ onCreate, onClose }: { onCreate: (config: 
       display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
     }}>
       <div className="glass-panel" style={{
-        padding: '2rem', borderRadius: '12px', width: '400px', maxWidth: '90vw',
-        background: 'rgba(30,30,40,0.95)',
-        boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
-        border: '1px solid rgba(255,255,255,0.1)'
+        padding: '2rem', width: '400px', maxWidth: '90vw'
       }}>
         <h2 style={{ marginBottom: '1.5rem', textAlign: 'center', color: '#fff' }}>Create Game</h2>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -77,15 +74,13 @@ export default function GameCreator({ onCreate, onClose }: { onCreate: (config: 
             <span>Rated Game</span>
           </label>
 
-          <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-            <button type="button" onClick={onClose} style={{
-              flex: 1, padding: '0.75rem', borderRadius: '4px', cursor: 'pointer',
-              background: 'transparent', border: '1px solid var(--accent-secondary, #aaa)', color: '#fff'
-            }}>Cancel</button>
-            <button type="submit" style={{
-              flex: 1, padding: '0.75rem', borderRadius: '4px', cursor: 'pointer',
-              background: 'var(--accent-primary, #4caf50)', border: 'none', color: '#fff', fontWeight: 'bold'
-            }}>Create</button>
+          <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+            <button type="button" onClick={onClose} className="btn-secondary" style={{ flex: 1 }}>
+              Cancel
+            </button>
+            <button type="submit" className="btn-primary" style={{ flex: 1 }}>
+              Create
+            </button>
           </div>
         </form>
       </div>

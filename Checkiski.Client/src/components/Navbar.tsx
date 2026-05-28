@@ -46,11 +46,13 @@ export default function Navbar() {
       boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
     }}>
       <Link href="/" style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#fff', textDecoration: 'none' }}>
-        <span className="text-gradient">Checkiski</span>
+        <span className="text-hero">Checkiski</span>
       </Link>
 
       <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
         <Link href="/" style={{ color: '#fff', textDecoration: 'none', fontWeight: 'bold' }}>Play</Link>
+        <Link href="/lobby" style={{ color: '#fff', textDecoration: 'none', fontWeight: 'bold' }}>Lobby</Link>
+        <Link href="/leaderboard" style={{ color: '#fff', textDecoration: 'none', fontWeight: 'bold' }}>Leaderboard</Link>
         
         {isLoggedIn ? (
           <>
