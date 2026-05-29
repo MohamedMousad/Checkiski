@@ -32,7 +32,7 @@ jobs:
           FTP_SERVER: ${{ secrets.FTP_SERVER }}
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          FTP_TARGET_DIR: "/" # Change this to "/site/wwwroot" if your FTP root requires it
+          FTP_TARGET_DIR: "/wwwroot"
         run: |
           sudo apt-get update && sudo apt-get install -y lftp
           
