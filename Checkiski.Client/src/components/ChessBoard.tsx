@@ -127,7 +127,16 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
                 newGame.loadPgn(data.pgn || data.Pgn);
                 playSound('move'); // Assume move, tracking capture precisely from PGN is harder here
                 return newGame;
-              } catch (e) { return prevGame; }
+              } catch (e) {
+                console.warn("Failed to load PGN, falling back to FEN", e);
+                try {
+                  const newGame = new Chess(data.fen || data.Fen);
+                  playSound('move');
+                  return newGame;
+                } catch (e2) {
+                  return prevGame;
+                }
+              }
             });
           });
           connection.on("GameEnded", (data) => {
@@ -172,11 +181,12 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
         const toX = files.indexOf(result.to[0]);
         const toY = parseInt(result.to[1]) - 1;
         const promotion = result.promotion || null;
+        const san = result.san;
 
         ApiService.post('/api/game/move', { 
           gameId, 
           playerId: localStorage.getItem('playerId'),
-          fromX, fromY, toX, toY, promotion
+          fromX, fromY, toX, toY, promotion, san
         }).catch(err => console.error(err));
       }
     } catch (e) {}

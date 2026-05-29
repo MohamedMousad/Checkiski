@@ -16,6 +16,7 @@ namespace Checkiski.Application.Games.Commands.SubmitMove
         public int ToX { get; set; }
         public int ToY { get; set; }
         public char? Promotion { get; set; }
+        public string San { get; set; } = string.Empty;
     }
 
     public class SubmitMoveCommandHandler : IRequestHandler<SubmitMoveCommand, bool>
@@ -57,10 +58,25 @@ namespace Checkiski.Application.Games.Commands.SubmitMove
             game.CurrentFen = board.ToFen();
             game.CurrentTurn = board.CurrentTurn;
             
-            string moveStr = $"{(char)('a' + request.FromX)}{request.FromY + 1}-{(char)('a' + request.ToX)}{request.ToY + 1}";
-            if (request.Promotion.HasValue) moveStr += $"={char.ToUpper(request.Promotion.Value)}";
-            game.MoveList.Add(moveStr);
-            game.Pgn = string.Join(" ", game.MoveList);
+            if (!string.IsNullOrEmpty(request.San))
+            {
+                game.MoveList.Add(request.San);
+            }
+            else
+            {
+                string moveStr = $"{(char)('a' + request.FromX)}{request.FromY + 1}-{(char)('a' + request.ToX)}{request.ToY + 1}";
+                if (request.Promotion.HasValue) moveStr += $"={char.ToUpper(request.Promotion.Value)}";
+                game.MoveList.Add(moveStr);
+            }
+            
+            // Generate valid PGN with move numbers
+            var pgnBuilder = new System.Text.StringBuilder();
+            for (int i = 0; i < game.MoveList.Count; i++)
+            {
+                if (i % 2 == 0) pgnBuilder.Append($"{(i / 2) + 1}. ");
+                pgnBuilder.Append(game.MoveList[i]).Append(" ");
+            }
+            game.Pgn = pgnBuilder.ToString().TrimEnd();
 
             // Check for game end
             King opponentKing = null!;
