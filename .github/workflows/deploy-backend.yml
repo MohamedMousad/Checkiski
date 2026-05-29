@@ -1,0 +1,55 @@
+name: Deploy Backend to MonsterASP
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Checkiski.WebApi/**'
+      - 'Checkiski.Application/**'
+      - 'Checkiski.Domain/**'
+      - 'Checkiski.Infrastructure/**'
+      - '.github/workflows/deploy-backend.yml'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x' # Using the preview version matching your local setup
+
+      - name: Publish WebApi
+        run: dotnet publish Checkiski.WebApi/Checkiski.WebApi.csproj -c Release -o ./publish
+
+      - name: Deploy via lftp
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_TARGET_DIR: "/" # Change this to "/site/wwwroot" if your FTP root requires it
+        run: |
+          sudo apt-get update && sudo apt-get install -y lftp
+          
+          # Create the app_offline.htm file inside the publish directory
+          # This ensures the site shuts down gracefully so IIS releases locks on .dll files
+          echo "<html><body><h1 style='text-align:center;margin-top:20%;font-family:sans-serif;'>Deploying update. Back in a few seconds...</h1></body></html>" > ./publish/app_offline.htm
+          
+          # 1. Upload app_offline.htm FIRST to shut down the app immediately
+          lftp -c "set ssl:verify-certificate no; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_SERVER; put -O $FTP_TARGET_DIR ./publish/app_offline.htm"
+          
+          # Give IIS a few seconds to unload the AppDomain
+          sleep 5
+          
+          # 2. Sync the publish folder
+          # -R: reverse (upload local to remote)
+          # -e: delete remote files that are not present in local
+          lftp -c "set ssl:verify-certificate no; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_SERVER; mirror -R -e ./publish $FTP_TARGET_DIR"
+          
+          # 3. Remove app_offline.htm to bring the app back online
+          lftp -c "set ssl:verify-certificate no; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_SERVER; rm $FTP_TARGET_DIR/app_offline.htm"

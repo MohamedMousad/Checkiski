@@ -78,7 +78,6 @@ download_impeccable.py
 *.ps1
 
 # CI/CD
-.github/
 
 # Flutter Mobile App
 Checkiski.Mobile/build/
