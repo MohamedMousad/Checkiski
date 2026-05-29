@@ -111,8 +111,8 @@ export default function PuzzleBoard({ fen, solution }: { fen: string, solution: 
         {status === 'failed' && <div style={{ color: '#ff4444', fontWeight: 'bold' }}>Incorrect move. Try again!</div>}
       </div>
 
-      <div className="glass-panel" style={{ padding: '2rem', display: 'inline-block' }}>
-        <div style={{ display: 'inline-block' }}>
+      <div className="glass-panel" style={{ padding: '2rem', width: '100%', maxWidth: '560px' }}>
+        <div style={{ width: '100%' }}>
           <PremiumBoard
             game={game}
             isFlipped={false}
