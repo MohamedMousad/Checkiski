@@ -18,6 +18,8 @@ namespace Checkiski.Application.Games.Queries.GetGame
         public string Status { get; set; } = string.Empty;
         public Guid? WhitePlayerId { get; set; }
         public Guid? BlackPlayerId { get; set; }
+        public string? WhitePlayerName { get; set; }
+        public string? BlackPlayerName { get; set; }
     }
 
     public class GetGameQuery : IRequest<GameDto?>
@@ -36,7 +38,11 @@ namespace Checkiski.Application.Games.Queries.GetGame
 
         public async Task<GameDto?> Handle(GetGameQuery request, CancellationToken cancellationToken)
         {
-            var game = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(_context.Games, g => g.Id == request.GameId, cancellationToken);
+            var game = await _context.Games
+                .Include(g => g.WhitePlayer)
+                .Include(g => g.BlackPlayer)
+                .FirstOrDefaultAsync(g => g.Id == request.GameId, cancellationToken);
+                
             if (game == null) return null;
             
             return new GameDto
@@ -48,7 +54,9 @@ namespace Checkiski.Application.Games.Queries.GetGame
                 BlackClockRemaining = game.BlackClockRemaining,
                 Status = game.Status.ToString(),
                 WhitePlayerId = game.WhitePlayerId,
-                BlackPlayerId = game.BlackPlayerId
+                BlackPlayerId = game.BlackPlayerId,
+                WhitePlayerName = game.WhitePlayer?.Username,
+                BlackPlayerName = game.BlackPlayer?.Username
             };
         }
     }

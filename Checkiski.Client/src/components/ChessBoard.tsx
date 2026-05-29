@@ -45,7 +45,10 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
 
   const [whitePlayerId, setWhitePlayerId] = useState<string | null>(null);
   const [blackPlayerId, setBlackPlayerId] = useState<string | null>(null);
+  const [whitePlayerName, setWhitePlayerName] = useState<string>('Opponent');
+  const [blackPlayerName, setBlackPlayerName] = useState<string>('Opponent');
   const currentUserId = typeof window !== 'undefined' ? localStorage.getItem('playerId') : null;
+  const currentUsername = typeof window !== 'undefined' ? localStorage.getItem('username') : 'You';
 
   const loadGameState = () => {
     ApiService.get<any>(`/api/game/${gameId}`)
@@ -59,6 +62,8 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
       setBlackClock(parseTs(data.blackClockRemaining));
       setWhitePlayerId(data.whitePlayerId);
       setBlackPlayerId(data.blackPlayerId);
+      if (data.whitePlayerName) setWhitePlayerName(data.whitePlayerName);
+      if (data.blackPlayerName) setBlackPlayerName(data.blackPlayerName);
       if (data.blackPlayerId && data.blackPlayerId === currentUserId) {
          setIsFlipped(true);
       }
@@ -264,7 +269,9 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
                   ANALYSIS MODE
                 </span>
              )}
-             <span style={{ color: 'var(--foreground)', fontWeight: 'bold' }}>Opponent</span>
+             <span style={{ color: 'var(--foreground)', fontWeight: 'bold' }}>
+               {isFlipped ? whitePlayerName : blackPlayerName}
+             </span>
           </div>
         </div>
 
@@ -308,7 +315,9 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
                    Eval: {evaluation > 0 ? '+' : ''}{evaluation.toFixed(2)}
                 </span>
              )}
-             <span style={{ color: 'var(--foreground)', fontWeight: 'bold' }}>You</span>
+             <span style={{ color: 'var(--foreground)', fontWeight: 'bold' }}>
+               {isFlipped ? blackPlayerName : whitePlayerName} (You)
+             </span>
           </div>
         </div>
       </div>
