@@ -43,8 +43,11 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
   const [whiteClock, setWhiteClock] = useState<number>(300);
   const [blackClock, setBlackClock] = useState<number>(300);
 
-  // Fetch initial game state
-  useEffect(() => {
+  const [whitePlayerId, setWhitePlayerId] = useState<string | null>(null);
+  const [blackPlayerId, setBlackPlayerId] = useState<string | null>(null);
+  const currentUserId = typeof window !== 'undefined' ? localStorage.getItem('playerId') : null;
+
+  const loadGameState = () => {
     ApiService.get<any>(`/api/game/${gameId}`)
     .then(data => {
       const parseTs = (ts: string) => {
@@ -54,6 +57,11 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
       };
       setWhiteClock(parseTs(data.whiteClockRemaining));
       setBlackClock(parseTs(data.blackClockRemaining));
+      setWhitePlayerId(data.whitePlayerId);
+      setBlackPlayerId(data.blackPlayerId);
+      if (data.blackPlayerId && data.blackPlayerId === currentUserId) {
+         setIsFlipped(true);
+      }
       if (data.pgn) {
         setGame(prev => {
           const newGame = new Chess();
@@ -63,7 +71,26 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
       }
     })
     .catch(err => console.error("Failed to load initial game state", err));
+  };
+
+  // Fetch initial game state
+  useEffect(() => {
+    loadGameState();
   }, [gameId]);
+
+  const handleJoinGame = async () => {
+    try {
+      const username = localStorage.getItem('username');
+      if (!username) {
+        alert("Please log in first!");
+        return;
+      }
+      await ApiService.post('/api/game/join', { gameId, username });
+      loadGameState();
+    } catch (err: any) {
+      alert(`Failed to join: ${err.message || 'Unknown error'}`);
+    }
+  };
 
   useEffect(() => {
     // @ts-ignore
@@ -232,9 +259,25 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
           </div>
         </div>
 
-        <PremiumBoard
-          game={viewGame}
-          isFlipped={isFlipped}
+        <div style={{ position: 'relative' }}>
+          {(!whitePlayerId || !blackPlayerId) && currentUserId !== whitePlayerId && currentUserId !== blackPlayerId && !gameOverMsg && (
+            <div style={{
+              position: 'absolute', inset: 0, zIndex: 30,
+              backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              borderRadius: '6px'
+            }}>
+              <div className="glass-panel" style={{ padding: '2rem', textAlign: 'center' }}>
+                <h3 style={{ marginBottom: '1rem', color: '#fff' }}>Opponent Wanted</h3>
+                <button onClick={handleJoinGame} className="btn-primary" style={{ padding: '12px 24px', fontSize: '1.1rem' }}>
+                  Join Match
+                </button>
+              </div>
+            </div>
+          )}
+          <PremiumBoard
+            game={viewGame}
+            isFlipped={isFlipped}
           selectedSquare={selectedSquare}
           legalMoves={legalMoves}
           isReviewMode={isReviewMode}
@@ -246,6 +289,7 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
           onDrop={onDrop}
           canDrag={(piece) => !isReviewMode && piece.color === game.turn() && game.turn() === (isFlipped ? 'b' : 'w')}
         />
+        </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>
           <GameClock timeRemaining={isFlipped ? blackClock : whiteClock} isActive={game.turn() === (isFlipped ? 'b' : 'w')} />

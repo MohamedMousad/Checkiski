@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Chess, Square } from 'chess.js';
 import PremiumBoard from './PremiumBoard';
 
-export default function PuzzleBoard({ fen, solution }: { fen: string, solution: string[] }) {
+export default function PuzzleBoard({ fen, solution, onNext }: { fen: string, solution: string[], onNext?: () => void }) {
   const [game, setGame] = useState(new Chess(fen));
   const [moveIndex, setMoveIndex] = useState(0);
   const [status, setStatus] = useState<'playing' | 'success' | 'failed'>('playing');
@@ -107,7 +107,12 @@ export default function PuzzleBoard({ fen, solution }: { fen: string, solution: 
       <div style={{ textAlign: 'center' }}>
         <h2 style={{ marginBottom: '0.5rem' }}>Tactics Puzzle</h2>
         {status === 'playing' && <div style={{ color: 'var(--accent-secondary)' }}>Find the best move!</div>}
-        {status === 'success' && <div style={{ color: '#4caf50', fontWeight: 'bold' }}>Puzzle Solved!</div>}
+        {status === 'success' && (
+          <div>
+            <div style={{ color: '#4caf50', fontWeight: 'bold', marginBottom: '0.5rem' }}>Puzzle Solved!</div>
+            {onNext && <button className="btn-primary" onClick={onNext} style={{ padding: '8px 16px', fontSize: '0.9rem' }}>Next Puzzle →</button>}
+          </div>
+        )}
         {status === 'failed' && <div style={{ color: '#ff4444', fontWeight: 'bold' }}>Incorrect move. Try again!</div>}
       </div>
 

@@ -24,7 +24,7 @@ function PlayContent() {
   if (!isAuthenticated || !gameId) return null; // or loading spinner
 
   return (
-    <div style={{ width: '100%' }}>
+    <div style={{ width: '100%', padding: 'calc(80px + var(--space-lg)) var(--space-md) var(--space-2xl)' }}>
       <ChessBoard gameId={gameId} />
     </div>
   );
