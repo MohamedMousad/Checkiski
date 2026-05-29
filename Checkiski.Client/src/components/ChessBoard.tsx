@@ -160,9 +160,18 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
         setGame(newGame);
         playSound(result.captured ? 'capture' : 'move');
         
-        const moveString = result.lan || (result.from + result.to + (result.promotion || ''));
+        // Convert 'e2' to fromX=4, fromY=1
+        const files = 'abcdefgh';
+        const fromX = files.indexOf(result.from[0]);
+        const fromY = parseInt(result.from[1]) - 1;
+        const toX = files.indexOf(result.to[0]);
+        const toY = parseInt(result.to[1]) - 1;
+        const promotion = result.promotion || null;
+
         ApiService.post('/api/game/move', { 
-          gameId, moveString, playerId: localStorage.getItem('playerId') 
+          gameId, 
+          playerId: localStorage.getItem('playerId'),
+          fromX, fromY, toX, toY, promotion
         }).catch(err => console.error(err));
       }
     } catch (e) {}
