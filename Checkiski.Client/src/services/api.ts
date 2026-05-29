@@ -40,7 +40,9 @@ export class ApiService {
       throw new Error(errorText || `API error: ${res.status}`);
     }
 
-    return res.json() as Promise<T>;
+    const text = await res.text();
+    if (!text) return {} as T;
+    return JSON.parse(text) as T;
   }
 
   static async get<T>(endpoint: string): Promise<T> {
@@ -54,7 +56,9 @@ export class ApiService {
       throw new Error(errorText || `API error: ${res.status}`);
     }
 
-    return res.json() as Promise<T>;
+    const text = await res.text();
+    if (!text) return {} as T;
+    return JSON.parse(text) as T;
   }
 
   static async put<T>(endpoint: string, body: any): Promise<T> {
@@ -69,6 +73,8 @@ export class ApiService {
       throw new Error(errorText || `API error: ${res.status}`);
     }
 
-    return res.json() as Promise<T>;
+    const text = await res.text();
+    if (!text) return {} as T;
+    return JSON.parse(text) as T;
   }
 }
