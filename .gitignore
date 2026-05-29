@@ -23,6 +23,8 @@ obj/
 *.log
 *.sqlite3
 *.db
+appsettings.json
+appsettings.*.json
 
 # macOS
 .DS_Store
