@@ -77,11 +77,13 @@ export default function PremiumBoard({
         borderRadius: '6px',
         boxShadow: theme.boardShadow,
         position: 'relative',
-        display: 'inline-block',
+        display: 'block',
+        width: '100%',
+        maxWidth: `${BOARD_PX + 12}px`,
       }}>
         <div style={{
-          width: `${BOARD_PX}px`,
-          height: `${BOARD_PX}px`,
+          width: '100%',
+          aspectRatio: '1 / 1',
           position: 'relative',
           borderRadius: '2px',
           overflow: 'hidden',
@@ -105,10 +107,10 @@ export default function PremiumBoard({
                 onDrop={(e) => onDrop(e, sq)}
                 style={{
                   position: 'absolute',
-                  top: vr * SQ_SIZE,
-                  left: vc * SQ_SIZE,
-                  width: SQ_SIZE,
-                  height: SQ_SIZE,
+                  top: `${vr * 12.5}%`,
+                  left: `${vc * 12.5}%`,
+                  width: '12.5%',
+                  height: '12.5%',
                   backgroundColor: baseBg,
                 }}
               >
@@ -158,8 +160,8 @@ export default function PremiumBoard({
                     position: 'absolute',
                     top: '50%', left: '50%',
                     transform: 'translate(-50%, -50%)',
-                    width: SQ_SIZE * 0.3,
-                    height: SQ_SIZE * 0.3,
+                    width: '30%',
+                    height: '30%',
                     borderRadius: '50%',
                     backgroundColor: theme.validMoveColor,
                     pointerEvents: 'none',
@@ -194,10 +196,10 @@ export default function PremiumBoard({
                 onClick={(e) => { e.stopPropagation(); onSquareClick(sq); }}
                 style={{
                   position: 'absolute',
-                  top: vr * SQ_SIZE,
-                  left: vc * SQ_SIZE,
-                  width: SQ_SIZE,
-                  height: SQ_SIZE,
+                  top: `${vr * 12.5}%`,
+                  left: `${vc * 12.5}%`,
+                  width: '12.5%',
+                  height: '12.5%',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -212,8 +214,8 @@ export default function PremiumBoard({
                   alt={`${piece.color}${piece.type}`}
                   draggable={false}
                   style={{
-                    width: SQ_SIZE - 4,
-                    height: SQ_SIZE - 4,
+                    width: '90%',
+                    height: '90%',
                     pointerEvents: 'none',
                     filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))',
                   }}
@@ -246,9 +248,9 @@ export default function PremiumBoard({
             return (
               <svg style={{
                 position: 'absolute', top: 0, left: 0,
-                width: BOARD_PX, height: BOARD_PX,
+                width: '100%', height: '100%',
                 zIndex: 20, pointerEvents: 'none',
-              }}>
+              }} viewBox={`0 0 ${BOARD_PX} ${BOARD_PX}`}>
                 <defs>
                   <marker id="prem-arrow" markerWidth="5" markerHeight="5" refX="3" refY="2.5" orient="auto">
                     <path d="M0,0 L0,5 L5,2.5 z" fill="rgba(46,170,80,0.85)" />
