@@ -41,7 +41,7 @@ jobs:
           echo "<html><body><h1 style='text-align:center;margin-top:20%;font-family:sans-serif;'>Deploying update. Back in a few seconds...</h1></body></html>" > ./out/app_offline.htm
           
           # 1. Upload app_offline.htm FIRST to shut down the app immediately
-          lftp -c "set ssl:verify-certificate no; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_SERVER; put -O $FTP_TARGET_DIR ./out/app_offline.htm"
+          lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "$FTP_SERVER" -e "set ssl:verify-certificate no; put -O $FTP_TARGET_DIR ./out/app_offline.htm; quit"
           
           # Give IIS a few seconds to unload the AppDomain
           sleep 5
@@ -50,7 +50,7 @@ jobs:
           # -R: reverse (upload local to remote)
           # -e: delete remote files that are not present in local
           sed -i 's/stdoutLogEnabled="false"/stdoutLogEnabled="true"/g' ./out/web.config
-          lftp -c "set ssl:verify-certificate no; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_SERVER; mirror -R -e ./out $FTP_TARGET_DIR"
+          lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "$FTP_SERVER" -e "set ssl:verify-certificate no; mirror -R -e ./out $FTP_TARGET_DIR; quit"
           
           # 3. Remove app_offline.htm to bring the app back online
-          lftp -c "set ssl:verify-certificate no; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_SERVER; rm $FTP_TARGET_DIR/app_offline.htm; rm $FTP_TARGET_DIR/default.html; rm $FTP_TARGET_DIR/index.html; rm $FTP_TARGET_DIR/hostingstart.html"
+          lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "$FTP_SERVER" -e "set ssl:verify-certificate no; rm -f $FTP_TARGET_DIR/app_offline.htm $FTP_TARGET_DIR/default.html $FTP_TARGET_DIR/index.html $FTP_TARGET_DIR/hostingstart.html; quit"
