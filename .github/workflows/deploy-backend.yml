@@ -22,7 +22,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.0.x' # Using the preview version matching your local setup
+          dotnet-version: '8.0.x'
 
       - name: Publish WebApi
         run: dotnet publish Checkiski.WebApi/Checkiski.WebApi.csproj -c Release -o ./publish
@@ -52,4 +52,4 @@ jobs:
           lftp -c "set ssl:verify-certificate no; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_SERVER; mirror -R -e ./publish $FTP_TARGET_DIR"
           
           # 3. Remove app_offline.htm to bring the app back online
-          lftp -c "set ssl:verify-certificate no; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_SERVER; rm $FTP_TARGET_DIR/app_offline.htm"
+          lftp -c "set ssl:verify-certificate no; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_SERVER; rm $FTP_TARGET_DIR/app_offline.htm; rm $FTP_TARGET_DIR/default.html; rm $FTP_TARGET_DIR/index.html; rm $FTP_TARGET_DIR/hostingstart.html"
