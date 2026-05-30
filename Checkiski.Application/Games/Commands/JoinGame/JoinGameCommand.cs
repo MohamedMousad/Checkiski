@@ -16,10 +16,12 @@ namespace Checkiski.Application.Games.Commands.JoinGame
     public class JoinGameCommandHandler : IRequestHandler<JoinGameCommand, bool>
     {
         private readonly IAppDbContext _context;
+        private readonly IGameNotifier _notifier;
 
-        public JoinGameCommandHandler(IAppDbContext context)
+        public JoinGameCommandHandler(IAppDbContext context, IGameNotifier notifier)
         {
             _context = context;
+            _notifier = notifier;
         }
 
         public async Task<bool> Handle(JoinGameCommand request, CancellationToken cancellationToken)
@@ -60,8 +62,18 @@ namespace Checkiski.Application.Games.Commands.JoinGame
                 game.BlackPlayer = joinPlayer;
                 game.BlackPlayerId = joinPlayer.Id;
             }
+
+            if (game.WhitePlayerId != null && game.BlackPlayerId != null)
+            {
+                game.Status = Checkiski.Domain.Entities.GameStatus.InProgress;
+            }
             
             await _context.SaveChangesAsync(cancellationToken);
+            
+            if (game.Status == Checkiski.Domain.Entities.GameStatus.InProgress)
+            {
+                await _notifier.PlayerJoinedAsync(game.Id);
+            }
             return true;
         }
     }

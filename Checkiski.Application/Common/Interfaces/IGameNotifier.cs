@@ -9,4 +9,5 @@ public interface IGameNotifier
     Task MoveSubmittedAsync(Guid gameId, string fen, string pgn, TimeSpan whiteClock, TimeSpan blackClock);
     Task GameEndedAsync(Guid gameId, GameStatus status);
     Task MatchFoundAsync(Guid player1Id, Guid player2Id, Guid gameId);
+    Task PlayerJoinedAsync(Guid gameId);
 }

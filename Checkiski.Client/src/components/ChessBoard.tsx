@@ -143,6 +143,9 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
             setGameOverMsg(`Game Over: ${data.status}`);
           });
           connection.on("DrawOffered", () => alert("Opponent offered a draw."));
+          connection.on("PlayerJoined", () => {
+            loadGameState();
+          });
         }).catch(e => console.log("Connection failed: ", e));
     }
     return () => {
