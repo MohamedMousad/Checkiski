@@ -181,12 +181,20 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
         const toX = files.indexOf(result.to[0]);
         const toY = parseInt(result.to[1]) - 1;
         const promotion = result.promotion || null;
+        // Determine game status
+        let status = '';
+        if (newGame.isCheckmate()) status = 'checkmate';
+        else if (newGame.isDraw()) status = 'draw';
+        else if (newGame.isStalemate()) status = 'stalemate';
+        else if (newGame.isThreefoldRepetition()) status = 'repetition';
+
+        const fen = newGame.fen();
         const san = result.san;
 
         ApiService.post('/api/game/move', { 
           gameId, 
           playerId: localStorage.getItem('playerId'),
-          fromX, fromY, toX, toY, promotion, san
+          fromX, fromY, toX, toY, promotion, san, fen, status
         }).catch(err => console.error(err));
       }
     } catch (e) {}
