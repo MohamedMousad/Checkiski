@@ -104,3 +104,9 @@ Checkiski.Mobile/macos/Flutter/ephemeral/
 
 /publish
 /out
+
+# Testing and Local Artifacts
+test_publish/
+playwright-report/
+test-results/
+blob-report/
