@@ -86,11 +86,21 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-app.UseExceptionHandler("/error");
-app.Map("/error", (Microsoft.AspNetCore.Http.HttpContext context) =>
+using (var scope = app.Services.CreateScope())
 {
-    return Microsoft.AspNetCore.Http.Results.Problem("An unexpected error occurred.");
-});
+    try 
+    {
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        db.Database.Migrate();
+        Console.WriteLine("Database migration completed successfully.");
+    } 
+    catch (Exception ex) 
+    {
+        Console.WriteLine($"Database migration failed: {ex.Message}");
+    }
+}
+
+app.UseDeveloperExceptionPage();
 
 if (app.Environment.IsDevelopment())
 {
