@@ -16,9 +16,11 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AspNetCoreHostingModel>OutOfProcess</AspNetCoreHostingModel>
+    <Nullable>enable</Nullable>
+    <RuntimeIdentifier>win-x86</RuntimeIdentifier>
+    <AspNetCoreHostingModel>InProcess</AspNetCoreHostingModel>
+    <SelfContained>false</SelfContained>
   </PropertyGroup>
 
 </Project>
