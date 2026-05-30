@@ -45,11 +45,15 @@ namespace Checkiski.Application.Games.Commands.SubmitMove
 
             if (request.PlayerId != playerTurnId) return false; // Not player's turn
 
-            // Bypass custom engine validation and trust the frontend (chess.js) FEN
-            // This fixes desync bugs caused by custom engine rejecting valid moves
-            
-            game.CurrentFen = !string.IsNullOrEmpty(request.Fen) ? request.Fen : board.ToFen();
-            game.CurrentTurn = isWhiteTurn ? Checkiski.Domain.Entities.Color.Black : Checkiski.Domain.Entities.Color.White;
+            var piece = board.Squares[request.FromX, request.FromY];
+            if (piece is Empty || piece.Color != board.CurrentTurn) return false; // Invalid piece selected
+
+            bool isValid = piece.Move(board, new Location(request.ToX, request.ToY), request.Promotion);
+            if (!isValid) return false;
+
+            // Update FEN and Turn from custom engine
+            game.CurrentFen = board.ToFen();
+            game.CurrentTurn = board.CurrentTurn;
             
             if (!string.IsNullOrEmpty(request.San))
             {
@@ -71,19 +75,26 @@ namespace Checkiski.Application.Games.Commands.SubmitMove
             }
             game.Pgn = pgnBuilder.ToString().TrimEnd();
 
-            // Handle game end from frontend status
-            if (!string.IsNullOrEmpty(request.Status))
+            // Check for game end using backend engine
+            King opponentKing = null!;
+            for (int i = 0; i < 8; i++)
             {
-                if (request.Status == "checkmate")
+                for (int j = 0; j < 8; j++)
                 {
-                    game.Status = isWhiteTurn ? Checkiski.Domain.Entities.GameStatus.WhiteWon : Checkiski.Domain.Entities.GameStatus.BlackWon;
-                    game.EndedAt = DateTime.UtcNow;
+                    if (board.Squares[i, j] is King k && k.Color == board.CurrentTurn) // Next player's king
+                        opponentKing = k;
                 }
-                else if (request.Status == "draw" || request.Status == "stalemate" || request.Status == "repetition")
-                {
-                    game.Status = Checkiski.Domain.Entities.GameStatus.Draw;
-                    game.EndedAt = DateTime.UtcNow;
-                }
+            }
+
+            if (opponentKing.IsMate(board))
+            {
+                game.Status = isWhiteTurn ? Checkiski.Domain.Entities.GameStatus.WhiteWon : Checkiski.Domain.Entities.GameStatus.BlackWon;
+                game.EndedAt = DateTime.UtcNow;
+            }
+            else if (opponentKing.IsStalemate(board) || board.IsDraw())
+            {
+                game.Status = Checkiski.Domain.Entities.GameStatus.Draw;
+                game.EndedAt = DateTime.UtcNow;
             }
 
             await _context.SaveChangesAsync(cancellationToken);

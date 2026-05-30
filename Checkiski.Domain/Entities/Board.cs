@@ -220,13 +220,62 @@ namespace Checkiski.Domain.Entities
             }
 
             if (parts.Length > 1) CurrentTurn = parts[1] == "w" ? Color.White : Color.Black;
+            
+            // Default all kings and rooks to Moved = true, then set false if they have castling rights
+            if (Squares[4, 0] is King wk) wk.Moved = true;
+            if (Squares[7, 0] is Rook wrK) wrK.Moved = true;
+            if (Squares[0, 0] is Rook wrQ) wrQ.Moved = true;
+            if (Squares[4, 7] is King bk) bk.Moved = true;
+            if (Squares[7, 7] is Rook brK) brK.Moved = true;
+            if (Squares[0, 7] is Rook brQ) brQ.Moved = true;
+
+            if (parts.Length > 2 && parts[2] != "-")
+            {
+                string castling = parts[2];
+                if (castling.Contains('K'))
+                {
+                    if (Squares[4, 0] is King k) k.Moved = false;
+                    if (Squares[7, 0] is Rook r) r.Moved = false;
+                }
+                if (castling.Contains('Q'))
+                {
+                    if (Squares[4, 0] is King k) k.Moved = false;
+                    if (Squares[0, 0] is Rook r) r.Moved = false;
+                }
+                if (castling.Contains('k'))
+                {
+                    if (Squares[4, 7] is King k) k.Moved = false;
+                    if (Squares[7, 7] is Rook r) r.Moved = false;
+                }
+                if (castling.Contains('q'))
+                {
+                    if (Squares[4, 7] is King k) k.Moved = false;
+                    if (Squares[0, 7] is Rook r) r.Moved = false;
+                }
+            }
+
+            if (parts.Length > 3 && parts[3] != "-")
+            {
+                string ep = parts[3];
+                int x = ep[0] - 'a';
+                int y = ep[1] - '1'; // rank 3 is y=2, rank 6 is y=5
+                
+                // If target is rank 3 (y=2), white pawn moved e2->e4 (y=1 to y=3). 
+                // If target is rank 6 (y=5), black pawn moved e7->e5 (y=6 to y=4).
+                if (y == 2) 
+                {
+                    MoveHistory.Add(new Move(new Location(x, 1), new Location(x, 3)));
+                }
+                else if (y == 5)
+                {
+                    MoveHistory.Add(new Move(new Location(x, 6), new Location(x, 4)));
+                }
+            }
+
             HalfMoveClock = 0;
             if (parts.Length > 4 && int.TryParse(parts[4], out int half)) HalfMoveClock = half;
             FullMoveNumber = 1;
             if (parts.Length > 5 && int.TryParse(parts[5], out int full)) FullMoveNumber = full;
-            
-            // Note: In a complete implementation, Castling rights (parts[2]) and En Passant (parts[3]) 
-            // should also be applied to Piece.Moved and MoveHistory states respectively.
         }
     }
 }
