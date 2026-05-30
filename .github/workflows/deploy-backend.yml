@@ -10,6 +10,7 @@ on:
       - 'Checkiski.Domain/**'
       - 'Checkiski.Infrastructure/**'
       - '.github/workflows/deploy-backend.yml'
+      - 'global.json'
 
 jobs:
   build-and-deploy:
@@ -19,15 +20,75 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup .NET
+      - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
-      - name: Publish WebApi
-        run: dotnet publish Checkiski.WebApi/Checkiski.WebApi.csproj -c Release -o ./out
+      - name: Clean and Publish for Windows x86
+        run: |
+          dotnet clean Checkiski.WebApi/Checkiski.WebApi.csproj -c Release || true
+          dotnet publish Checkiski.WebApi/Checkiski.WebApi.csproj \
+            -c Release \
+            -r win-x86 \
+            --self-contained false \
+            -o ./out
 
-      - name: Deploy via lftp
+      - name: Generate web.config with secrets
+        env:
+          DB_CONNECTION: ${{ secrets.DB_CONNECTION }}
+        run: |
+          cat > ./out/web.config << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <configuration>
+            <location path="." inheritInChildApplications="false">
+              <system.webServer>
+                <handlers>
+                  <add name="aspNetCore" path="*" verb="*" modules="AspNetCoreModuleV2" resourceType="Unspecified" />
+                </handlers>
+                <aspNetCore processPath="dotnet"
+                            arguments=".\Checkiski.WebApi.dll"
+                            stdoutLogEnabled="true"
+                            stdoutLogFile=".\logs\stdout"
+                            hostingModel="InProcess">
+                  <environmentVariables>
+                    <environmentVariable name="ASPNETCORE_ENVIRONMENT" value="Production" />
+                    <environmentVariable name="ConnectionStrings__DefaultConnection" value="__DB_CONNECTION__" />
+                  </environmentVariables>
+                </aspNetCore>
+              </system.webServer>
+            </location>
+          </configuration>
+          EOF
+
+          # Strip leading whitespace from heredoc
+          sed -i 's/^          //' ./out/web.config
+
+          # Inject the actual secret value
+          sed -i "s|__DB_CONNECTION__|${DB_CONNECTION}|g" ./out/web.config
+
+          echo "--- web.config generated (secrets redacted) ---"
+          sed 's/value="Host=.*/value="[REDACTED]"/' ./out/web.config
+
+      - name: Create logs directory
+        run: mkdir -p ./out/logs
+
+      - name: Verify publish output
+        run: |
+          echo "--- Published files ---"
+          ls -la ./out/
+          echo ""
+          echo "--- runtimeconfig.json ---"
+          cat ./out/Checkiski.WebApi.runtimeconfig.json
+          echo ""
+          echo "--- Checking for .NET 10 contamination ---"
+          if grep -q "10.0.0" ./out/Checkiski.WebApi.runtimeconfig.json; then
+            echo "ERROR: .NET 10 detected in runtimeconfig!"
+            exit 1
+          fi
+          echo "All clean - .NET 8 only."
+
+      - name: Deploy via FTP
         env:
           FTP_SERVER: ${{ secrets.FTP_SERVER }}
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
@@ -35,22 +96,20 @@ jobs:
           FTP_TARGET_DIR: "/wwwroot"
         run: |
           sudo apt-get update && sudo apt-get install -y lftp
-          
-          # Create the app_offline.htm file inside the publish directory
-          # This ensures the site shuts down gracefully so IIS releases locks on .dll files
-          echo "<html><body><h1 style='text-align:center;margin-top:20%;font-family:sans-serif;'>Deploying update. Back in a few seconds...</h1></body></html>" > ./out/app_offline.htm
-          
-          # 1. Upload app_offline.htm FIRST to shut down the app immediately
+
+          # Create app_offline.htm to gracefully shut down the app
+          echo "<html><body><h1 style='text-align:center;margin-top:20%;font-family:sans-serif;'>Deploying update...</h1></body></html>" > ./out/app_offline.htm
+
+          # 1. Upload app_offline.htm FIRST to shut down the app and release DLL locks
           lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "$FTP_SERVER" -e "set ssl:verify-certificate no; put -O $FTP_TARGET_DIR ./out/app_offline.htm; quit"
-          
-          # Give IIS a few seconds to unload the AppDomain
+
+          # Give IIS time to unload
           sleep 5
-          
-          # 2. Sync the publish folder
-          # -R: reverse (upload local to remote)
-          # -e: delete remote files that are not present in local
-          sed -i 's/stdoutLogEnabled="false"/stdoutLogEnabled="true"/g' ./out/web.config
+
+          # 2. Wipe remote completely, then upload fresh build
           lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "$FTP_SERVER" -e "set ssl:verify-certificate no; mirror -R -e --delete-first ./out $FTP_TARGET_DIR; quit"
-          
-          # 3. Remove app_offline.htm to bring the app back online
+
+          # 3. Remove app_offline.htm to bring the app online
           lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "$FTP_SERVER" -e "set ssl:verify-certificate no; rm -f $FTP_TARGET_DIR/app_offline.htm $FTP_TARGET_DIR/default.html $FTP_TARGET_DIR/index.html $FTP_TARGET_DIR/hostingstart.html; quit"
+
+          echo "Deployment complete!"

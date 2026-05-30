@@ -18,14 +18,23 @@ builder.Services.AddScoped<IAppDbContext>(provider => provider.GetRequiredServic
 builder.Services.AddScoped<IGameNotifier, Checkiski.WebApi.Services.GameNotifier>();
 builder.Services.AddScoped<IJwtService, Checkiski.WebApi.Services.JwtService>();
 
-var redisConnectionString = builder.Configuration.GetConnectionString("Redis") ?? "localhost";
-try
+var redisConnectionString = builder.Configuration.GetConnectionString("Redis");
+if (!string.IsNullOrWhiteSpace(redisConnectionString))
 {
-    builder.Services.AddSingleton<StackExchange.Redis.IConnectionMultiplexer>(StackExchange.Redis.ConnectionMultiplexer.Connect(redisConnectionString));
+    try
+    {
+        var redis = StackExchange.Redis.ConnectionMultiplexer.Connect(redisConnectionString);
+        builder.Services.AddSingleton<StackExchange.Redis.IConnectionMultiplexer>(redis);
+        Console.WriteLine("Redis connected successfully.");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Redis connection failed, running without Redis: {ex.Message}");
+    }
 }
-catch (Exception ex)
+else
 {
-    Console.WriteLine($"Redis connection failed: {ex.Message}");
+    Console.WriteLine("No Redis connection string configured, running without Redis.");
 }
 builder.Services.AddScoped<Checkiski.Application.Common.Interfaces.IMatchmakingService, Checkiski.Infrastructure.Services.InMemoryMatchmakingService>();
 

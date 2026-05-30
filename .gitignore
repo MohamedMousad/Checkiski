@@ -110,3 +110,6 @@ test_publish/
 playwright-report/
 test-results/
 blob-report/
+
+out_test/
+out/
