@@ -50,7 +50,7 @@ jobs:
           # -R: reverse (upload local to remote)
           # -e: delete remote files that are not present in local
           sed -i 's/stdoutLogEnabled="false"/stdoutLogEnabled="true"/g' ./out/web.config
-          lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "$FTP_SERVER" -e "set ssl:verify-certificate no; mirror -R -e ./out $FTP_TARGET_DIR; quit"
+          lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "$FTP_SERVER" -e "set ssl:verify-certificate no; mirror -R -e --delete-first ./out $FTP_TARGET_DIR; quit"
           
           # 3. Remove app_offline.htm to bring the app back online
           lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "$FTP_SERVER" -e "set ssl:verify-certificate no; rm -f $FTP_TARGET_DIR/app_offline.htm $FTP_TARGET_DIR/default.html $FTP_TARGET_DIR/index.html $FTP_TARGET_DIR/hostingstart.html; quit"
