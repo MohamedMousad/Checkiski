@@ -101,3 +101,6 @@ Checkiski.Mobile/ios/ServiceDefinitions.json
 Checkiski.Mobile/ios/Runner/GeneratedPluginRegistrant.*
 Checkiski.Mobile/macos/Flutter/GeneratedPluginRegistrant.swift
 Checkiski.Mobile/macos/Flutter/ephemeral/
+
+/publish
+/out

@@ -25,7 +25,7 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Publish WebApi
-        run: dotnet publish Checkiski.WebApi/Checkiski.WebApi.csproj -c Release -o ./publish
+        run: dotnet publish Checkiski.WebApi/Checkiski.WebApi.csproj -c Release -o ./out
 
       - name: Deploy via lftp
         env:
@@ -38,10 +38,10 @@ jobs:
           
           # Create the app_offline.htm file inside the publish directory
           # This ensures the site shuts down gracefully so IIS releases locks on .dll files
-          echo "<html><body><h1 style='text-align:center;margin-top:20%;font-family:sans-serif;'>Deploying update. Back in a few seconds...</h1></body></html>" > ./publish/app_offline.htm
+          echo "<html><body><h1 style='text-align:center;margin-top:20%;font-family:sans-serif;'>Deploying update. Back in a few seconds...</h1></body></html>" > ./out/app_offline.htm
           
           # 1. Upload app_offline.htm FIRST to shut down the app immediately
-          lftp -c "set ssl:verify-certificate no; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_SERVER; put -O $FTP_TARGET_DIR ./publish/app_offline.htm"
+          lftp -c "set ssl:verify-certificate no; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_SERVER; put -O $FTP_TARGET_DIR ./out/app_offline.htm"
           
           # Give IIS a few seconds to unload the AppDomain
           sleep 5
@@ -49,8 +49,8 @@ jobs:
           # 2. Sync the publish folder
           # -R: reverse (upload local to remote)
           # -e: delete remote files that are not present in local
-          sed -i 's/stdoutLogEnabled="false"/stdoutLogEnabled="true"/g' ./publish/web.config
-          lftp -c "set ssl:verify-certificate no; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_SERVER; mirror -R -e ./publish $FTP_TARGET_DIR"
+          sed -i 's/stdoutLogEnabled="false"/stdoutLogEnabled="true"/g' ./out/web.config
+          lftp -c "set ssl:verify-certificate no; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_SERVER; mirror -R -e ./out $FTP_TARGET_DIR"
           
           # 3. Remove app_offline.htm to bring the app back online
           lftp -c "set ssl:verify-certificate no; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_SERVER; rm $FTP_TARGET_DIR/app_offline.htm; rm $FTP_TARGET_DIR/default.html; rm $FTP_TARGET_DIR/index.html; rm $FTP_TARGET_DIR/hostingstart.html"
