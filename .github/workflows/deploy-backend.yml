@@ -49,6 +49,7 @@ jobs:
           # 2. Sync the publish folder
           # -R: reverse (upload local to remote)
           # -e: delete remote files that are not present in local
+          sed -i 's/stdoutLogEnabled="false"/stdoutLogEnabled="true"/g' ./publish/web.config
           lftp -c "set ssl:verify-certificate no; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_SERVER; mirror -R -e ./publish $FTP_TARGET_DIR"
           
           # 3. Remove app_offline.htm to bring the app back online
