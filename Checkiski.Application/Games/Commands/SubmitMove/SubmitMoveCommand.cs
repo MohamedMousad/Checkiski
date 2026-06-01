@@ -51,6 +51,24 @@ namespace Checkiski.Application.Games.Commands.SubmitMove
             bool isValid = piece.Move(board, new Location(request.ToX, request.ToY), request.Promotion);
             if (!isValid) return false;
 
+            // Clock synchronization
+            var now = DateTime.UtcNow;
+            if (game.LastMoveAt.HasValue)
+            {
+                var elapsed = now - game.LastMoveAt.Value;
+                if (isWhiteTurn)
+                {
+                    game.WhiteClockRemaining -= elapsed;
+                    if (game.WhiteClockRemaining.TotalSeconds < 0) game.WhiteClockRemaining = TimeSpan.Zero;
+                }
+                else
+                {
+                    game.BlackClockRemaining -= elapsed;
+                    if (game.BlackClockRemaining.TotalSeconds < 0) game.BlackClockRemaining = TimeSpan.Zero;
+                }
+            }
+            game.LastMoveAt = now;
+
             // Update FEN and Turn from custom engine
             game.CurrentFen = board.ToFen();
             game.CurrentTurn = board.CurrentTurn;
@@ -65,6 +83,9 @@ namespace Checkiski.Application.Games.Commands.SubmitMove
                 if (request.Promotion.HasValue) moveStr += $"={char.ToUpper(request.Promotion.Value)}";
                 game.MoveList.Add(moveStr);
             }
+
+            // CRITICAL EF CORE FIX: Force EF Core to track the change to the list
+            game.MoveList = new System.Collections.Generic.List<string>(game.MoveList);
             
             // Generate valid PGN with move numbers
             var pgnBuilder = new System.Text.StringBuilder();

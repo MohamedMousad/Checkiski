@@ -70,6 +70,8 @@ namespace Checkiski.Application.Games.Commands.JoinGame
             if (game.WhitePlayerId != null && game.BlackPlayerId != null)
             {
                 game.Status = Checkiski.Domain.Entities.GameStatus.InProgress;
+                game.StartedAt = DateTime.UtcNow;
+                game.LastMoveAt = DateTime.UtcNow;
             }
             
             await _context.SaveChangesAsync(cancellationToken);

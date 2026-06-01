@@ -29,6 +29,7 @@ namespace Checkiski.Domain.Entities
         public GameStatus Status { get; set; } = GameStatus.WaitingForOpponent;
         public DateTime StartedAt { get; set; } = DateTime.UtcNow;
         public DateTime? EndedAt { get; set; }
+        public DateTime? LastMoveAt { get; set; }
     }
 
     public enum GameStatus
