@@ -25,7 +25,7 @@ namespace Checkiski.Application.Games.Queries.ListGames
         public async Task<List<Checkiski.Application.Games.Queries.GetGame.GameDto>> Handle(ListGamesQuery request, CancellationToken cancellationToken)
         {
             var games = await _context.Games
-                .Where(g => g.Status == Checkiski.Domain.Entities.GameStatus.InProgress)
+                .Where(g => g.Status == Checkiski.Domain.Entities.GameStatus.WaitingForOpponent)
                 .Take(20)
                 .ToListAsync(cancellationToken);
             return games.Select(game => new Checkiski.Application.Games.Queries.GetGame.GameDto

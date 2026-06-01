@@ -34,6 +34,17 @@ namespace Checkiski.Application.Games.Commands.CreateGame
                 throw new Exception("Host player not found");
             }
 
+            var existingWaitingGames = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(_context.Games.Where(
+                g => (g.WhitePlayerId == hostPlayer.Id || g.BlackPlayerId == hostPlayer.Id) 
+                  && g.Status == Checkiski.Domain.Entities.GameStatus.WaitingForOpponent), 
+                cancellationToken);
+
+            foreach (var waitingGame in existingWaitingGames)
+            {
+                waitingGame.Status = Checkiski.Domain.Entities.GameStatus.Aborted;
+                waitingGame.EndedAt = DateTime.UtcNow;
+            }
+
             var existingGame = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(_context.Games, 
                 g => (g.WhitePlayerId == hostPlayer.Id || g.BlackPlayerId == hostPlayer.Id) 
                   && g.Status == Checkiski.Domain.Entities.GameStatus.InProgress, 
@@ -61,7 +72,7 @@ namespace Checkiski.Application.Games.Commands.CreateGame
             {
                 Options = options,
                 StartedAt = DateTime.UtcNow,
-                Status = Checkiski.Domain.Entities.GameStatus.InProgress,
+                Status = Checkiski.Domain.Entities.GameStatus.WaitingForOpponent,
                 WhiteClockRemaining = TimeSpan.FromMinutes(request.BaseMinutes),
                 BlackClockRemaining = TimeSpan.FromMinutes(request.BaseMinutes)
             };

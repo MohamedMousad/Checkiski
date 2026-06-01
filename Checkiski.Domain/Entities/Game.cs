@@ -26,7 +26,7 @@ namespace Checkiski.Domain.Entities
         public Color CurrentTurn { get; set; } = Color.White;
         public List<string> MoveList { get; set; } = new();
         
-        public GameStatus Status { get; set; } = GameStatus.InProgress;
+        public GameStatus Status { get; set; } = GameStatus.WaitingForOpponent;
         public DateTime StartedAt { get; set; } = DateTime.UtcNow;
         public DateTime? EndedAt { get; set; }
     }
@@ -37,6 +37,7 @@ namespace Checkiski.Domain.Entities
         WhiteWon,
         BlackWon,
         Draw,
-        Aborted
+        Aborted,
+        WaitingForOpponent
     }
 }

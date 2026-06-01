@@ -41,6 +41,21 @@ namespace Checkiski.Application.Games.Commands.JoinGame
             if (game.WhitePlayerId == joinPlayer.Id || game.BlackPlayerId == joinPlayer.Id)
                 return false; // Prevent self-join
 
+            if (game.Status != Checkiski.Domain.Entities.GameStatus.WaitingForOpponent)
+                return false;
+
+            var existingWaitingGames = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(_context.Games.Where(
+                g => (g.WhitePlayerId == joinPlayer.Id || g.BlackPlayerId == joinPlayer.Id) 
+                  && g.Status == Checkiski.Domain.Entities.GameStatus.WaitingForOpponent
+                  && g.Id != game.Id), 
+                cancellationToken);
+
+            foreach (var waitingGame in existingWaitingGames)
+            {
+                waitingGame.Status = Checkiski.Domain.Entities.GameStatus.Aborted;
+                waitingGame.EndedAt = DateTime.UtcNow;
+            }
+
             var existingGame = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(_context.Games, 
                 g => (g.WhitePlayerId == joinPlayer.Id || g.BlackPlayerId == joinPlayer.Id) 
                   && g.Status == Checkiski.Domain.Entities.GameStatus.InProgress
