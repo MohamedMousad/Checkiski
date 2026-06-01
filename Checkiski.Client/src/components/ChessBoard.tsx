@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import type { HubConnection } from '@microsoft/signalr';
+import { HubConnection, HubConnectionBuilder } from '@microsoft/signalr';
 import { Chess, Square } from 'chess.js';
 import { useStockfish } from '../hooks/useStockfish';
 import { ApiService } from '../services/api';
@@ -98,12 +98,8 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
   };
 
   useEffect(() => {
-    // @ts-ignore
-    const signalR = window.signalR;
-    if (!signalR) return;
-
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-    const newConnection = new signalR.HubConnectionBuilder()
+    const newConnection = new HubConnectionBuilder()
       .withUrl(`${apiUrl}/gamehub`, { accessTokenFactory: () => localStorage.getItem('token') || '' })
       .withAutomaticReconnect()
       .build();
