@@ -45,16 +45,6 @@ namespace Checkiski.Application.Games.Commands.CreateGame
                 waitingGame.EndedAt = DateTime.UtcNow;
             }
 
-            var existingGame = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(_context.Games, 
-                g => (g.WhitePlayerId == hostPlayer.Id || g.BlackPlayerId == hostPlayer.Id) 
-                  && g.Status == Checkiski.Domain.Entities.GameStatus.InProgress, 
-                cancellationToken);
-
-            if (existingGame != null)
-            {
-                return existingGame.Id;
-            }
-            
             var timeControl = new Checkiski.Domain.ValueObjects.TimeControl(request.BaseMinutes, request.IncrementSeconds);
             
             var colorChoice = request.ColorChoice;

@@ -56,17 +56,6 @@ namespace Checkiski.Application.Games.Commands.JoinGame
                 waitingGame.EndedAt = DateTime.UtcNow;
             }
 
-            var existingGame = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(_context.Games, 
-                g => (g.WhitePlayerId == joinPlayer.Id || g.BlackPlayerId == joinPlayer.Id) 
-                  && g.Status == Checkiski.Domain.Entities.GameStatus.InProgress
-                  && g.Id != game.Id, 
-                cancellationToken);
-
-            if (existingGame != null)
-            {
-                return false; // Can't join a new game if already in an active one
-            }
-
             if (game.WhitePlayerId == null)
             {
                 game.WhitePlayer = joinPlayer;
