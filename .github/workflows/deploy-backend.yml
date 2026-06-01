@@ -34,7 +34,9 @@ jobs:
             --self-contained false \
             -o ./out
 
-      - name: Generate web.config
+      - name: Generate web.config with secrets
+        env:
+          DB_CONNECTION: ${{ secrets.DB_CONNECTION }}
         run: |
           cat > ./out/web.config << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
@@ -51,6 +53,7 @@ jobs:
                             hostingModel="InProcess">
                   <environmentVariables>
                     <environmentVariable name="ASPNETCORE_ENVIRONMENT" value="Production" />
+                    <environmentVariable name="ConnectionStrings__DefaultConnection" value="__DB_CONNECTION__" />
                   </environmentVariables>
                 </aspNetCore>
               </system.webServer>
@@ -60,6 +63,12 @@ jobs:
 
           # Strip leading whitespace from heredoc
           sed -i 's/^          //' ./out/web.config
+
+          # Inject the actual secret value
+          sed -i "s|__DB_CONNECTION__|${DB_CONNECTION}|g" ./out/web.config
+
+          echo "--- web.config generated (secrets redacted) ---"
+          sed 's/value="Host=.*/value="[REDACTED]"/' ./out/web.config
 
       - name: Create logs directory
         run: mkdir -p ./out/logs

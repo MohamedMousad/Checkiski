@@ -149,6 +149,6 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHub<GameHub>("/gamehub");
 
-app.MapGet("/", () => "Checkiski API is running! v2");
+app.MapGet("/", () => "Checkiski API is running!");
 
 app.Run();
