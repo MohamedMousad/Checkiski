@@ -11,8 +11,22 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSignalR();
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(IAppDbContext).Assembly));
 
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (!string.IsNullOrEmpty(connectionString))
+{
+    // Fix invalid sslmode parameter common with some cloud provider URI formats
+    if (connectionString.EndsWith("?sslmode", StringComparison.OrdinalIgnoreCase))
+    {
+        connectionString += "=Require";
+    }
+    else if (connectionString.Contains("?sslmode&", StringComparison.OrdinalIgnoreCase))
+    {
+        connectionString = connectionString.Replace("?sslmode&", "?sslmode=Require&", StringComparison.OrdinalIgnoreCase);
+    }
+}
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(connectionString));
 
 builder.Services.AddScoped<IAppDbContext>(provider => provider.GetRequiredService<AppDbContext>());
 builder.Services.AddScoped<IGameNotifier, Checkiski.WebApi.Services.GameNotifier>();
