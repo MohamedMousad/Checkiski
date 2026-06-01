@@ -20,7 +20,6 @@ if (string.IsNullOrWhiteSpace(connectionString))
 if (!string.IsNullOrWhiteSpace(connectionString))
 {
     connectionString = connectionString.Trim();
-    
     int index = connectionString.IndexOf("?sslmode", StringComparison.OrdinalIgnoreCase);
     if (index >= 0)
     {
@@ -29,6 +28,19 @@ if (!string.IsNullOrWhiteSpace(connectionString))
         {
             connectionString = connectionString.Insert(index + 8, "=Require");
         }
+    }
+    
+    // Mutate the configuration so any auto-provisioning tools see the fixed string
+    builder.Configuration["ConnectionStrings:DefaultConnection"] = connectionString;
+    
+    // Also mutate environment variables just in case
+    if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("DATABASE_URL")))
+    {
+        Environment.SetEnvironmentVariable("DATABASE_URL", connectionString);
+    }
+    if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")))
+    {
+        Environment.SetEnvironmentVariable("ConnectionStrings__DefaultConnection", connectionString);
     }
 }
 
