@@ -12,16 +12,23 @@ builder.Services.AddSignalR();
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(IAppDbContext).Assembly));
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-if (!string.IsNullOrEmpty(connectionString))
+if (string.IsNullOrWhiteSpace(connectionString))
 {
-    // Fix invalid sslmode parameter common with some cloud provider URI formats
-    if (connectionString.EndsWith("?sslmode", StringComparison.OrdinalIgnoreCase))
+    connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
+}
+
+if (!string.IsNullOrWhiteSpace(connectionString))
+{
+    connectionString = connectionString.Trim();
+    
+    int index = connectionString.IndexOf("?sslmode", StringComparison.OrdinalIgnoreCase);
+    if (index >= 0)
     {
-        connectionString += "=Require";
-    }
-    else if (connectionString.Contains("?sslmode&", StringComparison.OrdinalIgnoreCase))
-    {
-        connectionString = connectionString.Replace("?sslmode&", "?sslmode=Require&", StringComparison.OrdinalIgnoreCase);
+        bool hasEquals = connectionString.Length > index + 8 && connectionString[index + 8] == '=';
+        if (!hasEquals)
+        {
+            connectionString = connectionString.Insert(index + 8, "=Require");
+        }
     }
 }
 
