@@ -8,10 +8,13 @@ export default function LeaderboardPage() {
   const [players, setPlayers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [category, setCategory] = useState<string>('All');
   const router = useRouter();
 
   useEffect(() => {
-    ApiService.get<any[]>('/api/player/leaderboard')
+    setLoading(true);
+    const catQuery = category === 'All' ? '' : `?category=${category}`;
+    ApiService.get<any[]>(`/api/player/leaderboard${catQuery}`)
       .then(data => {
         setPlayers(data);
         setLoading(false);
@@ -20,7 +23,7 @@ export default function LeaderboardPage() {
         setError(err.message || 'Unable to connect to the arena.');
         setLoading(false);
       });
-  }, []);
+  }, [category]);
 
   const getRankStyle = (index: number) => {
     if (index === 0) return { color: '#FFD700', textShadow: '0 0 10px rgba(255,215,0,0.3)' };
@@ -50,6 +53,27 @@ export default function LeaderboardPage() {
         <h1 className="text-hero" style={{ fontSize: 'clamp(2rem, 5vw, 3rem)' }}>
           Leaderboard
         </h1>
+      </div>
+      
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: 'var(--space-2xl)' }}>
+        {['All', 'Bullet', 'Blitz', 'Rapid'].map(cat => (
+          <button
+            key={cat}
+            onClick={() => setCategory(cat)}
+            style={{
+              padding: '0.5rem 1.5rem',
+              borderRadius: '20px',
+              background: category === cat ? 'var(--color-emerald)' : 'var(--panel-bg)',
+              color: category === cat ? '#fff' : 'var(--color-text-dim)',
+              cursor: 'pointer',
+              fontWeight: 600,
+              transition: 'all 0.2s ease',
+              border: '1px solid ' + (category === cat ? 'var(--color-emerald)' : 'var(--panel-border)')
+            }}
+          >
+            {cat}
+          </button>
+        ))}
       </div>
       
       <div className="glass-panel" style={{
@@ -111,7 +135,7 @@ export default function LeaderboardPage() {
                     {p.country || '—'}
                   </td>
                   <td style={{ padding: 'var(--space-md) var(--space-lg)', fontFamily: 'var(--font-mono)', fontWeight: 'bold', textAlign: 'right', color: 'var(--color-emerald)', fontSize: '1rem' }}>
-                    {p.rating}
+                    {category === 'Bullet' ? p.bulletRating : category === 'Blitz' ? p.blitzRating : category === 'Rapid' ? p.rapidRating : p.rating}
                   </td>
                 </tr>
               ))}

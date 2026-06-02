@@ -117,9 +117,9 @@ namespace Checkiski.WebApi.Controllers
         }
 
         [HttpGet("leaderboard")]
-        public async Task<IActionResult> GetLeaderboard()
+        public async Task<IActionResult> GetLeaderboard([FromQuery] string? category)
         {
-            var leaderboard = await _mediator.Send(new Checkiski.Application.Players.Queries.GetLeaderboard.GetLeaderboardQuery());
+            var leaderboard = await _mediator.Send(new Checkiski.Application.Players.Queries.GetLeaderboard.GetLeaderboardQuery { Category = category });
             return Ok(leaderboard);
         }
     }
