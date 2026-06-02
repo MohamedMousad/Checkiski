@@ -64,7 +64,7 @@ namespace Checkiski.Application.Players.Queries.GetPlayerGameHistory
                 {
                     GameId = g.Id,
                     OpponentName = opponentName,
-                    GameCategory = g.Options?.GameCategory ?? "Standard",
+                    GameCategory = g.Options?.GameCategory.ToString() ?? "Standard",
                     PlayedAt = g.EndedAt ?? g.StartedAt,
                     Outcome = outcome,
                     Color = isWhite ? "White" : "Black"
