@@ -44,5 +44,10 @@ namespace Checkiski.WebApi.Services
         {
             await _hubContext.Clients.Group(gameId.ToString()).SendAsync("PlayerJoined");
         }
+
+        public async Task DrawOfferedAsync(Guid gameId, Guid offeredByPlayerId)
+        {
+            await _hubContext.Clients.Group(gameId.ToString()).SendAsync("DrawOffered", offeredByPlayerId.ToString());
+        }
     }
 }

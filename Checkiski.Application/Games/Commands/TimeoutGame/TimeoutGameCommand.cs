@@ -4,42 +4,47 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Checkiski.Application.Games.Commands.ResignGame
+namespace Checkiski.Application.Games.Commands.TimeoutGame
 {
-    public class ResignGameCommand : IRequest<bool>
+    public class TimeoutGameCommand : IRequest<bool>
     {
         public Guid GameId { get; set; }
         public Guid PlayerId { get; set; }
     }
 
-    public class ResignGameCommandHandler : IRequestHandler<ResignGameCommand, bool>
+    public class TimeoutGameCommandHandler : IRequestHandler<TimeoutGameCommand, bool>
     {
         private readonly IAppDbContext _context;
         private readonly IGameNotifier _notifier;
 
-        public ResignGameCommandHandler(IAppDbContext context, IGameNotifier notifier)
+        public TimeoutGameCommandHandler(IAppDbContext context, IGameNotifier notifier)
         {
             _context = context;
             _notifier = notifier;
         }
 
-        public async Task<bool> Handle(ResignGameCommand request, CancellationToken cancellationToken)
+        public async Task<bool> Handle(TimeoutGameCommand request, CancellationToken cancellationToken)
         {
             var game = await _context.Games.FindAsync(new object[] { request.GameId }, cancellationToken);
             if (game == null || game.Status != Checkiski.Domain.Entities.GameStatus.InProgress) return false;
 
-            if (request.PlayerId == game.WhitePlayerId)
+            if (game.CurrentTurn == Checkiski.Domain.Entities.Color.White)
+            {
                 game.Status = Checkiski.Domain.Entities.GameStatus.BlackWon;
-            else if (request.PlayerId == game.BlackPlayerId)
-                game.Status = Checkiski.Domain.Entities.GameStatus.WhiteWon;
+                game.WhiteClockRemaining = TimeSpan.Zero;
+            }
             else
-                return false;
+            {
+                game.Status = Checkiski.Domain.Entities.GameStatus.WhiteWon;
+                game.BlackClockRemaining = TimeSpan.Zero;
+            }
 
             game.EndedAt = DateTime.UtcNow;
             
             await Checkiski.Application.Common.Helpers.GameFinalizer.FinalizeRatingsAsync(_context, game, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);
 
+            // We can send the actual GameStatus, but the frontend intercepts locally to say "Finished by Timeout"
             await _notifier.GameEndedAsync(game.Id, game.Status);
 
             return true;
