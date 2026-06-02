@@ -118,6 +118,11 @@ namespace Checkiski.Application.Games.Commands.SubmitMove
                 game.EndedAt = DateTime.UtcNow;
             }
 
+            if (game.Status != Checkiski.Domain.Entities.GameStatus.InProgress)
+            {
+                await Checkiski.Application.Common.Helpers.GameFinalizer.FinalizeRatingsAsync(_context, game, cancellationToken);
+            }
+
             await _context.SaveChangesAsync(cancellationToken);
 
             await _notifier.MoveSubmittedAsync(game.Id, game.CurrentFen, game.Pgn, game.WhiteClockRemaining, game.BlackClockRemaining);

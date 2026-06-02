@@ -30,6 +30,16 @@ const playSound = (type: 'move' | 'capture') => {
   } catch (e) {}
 };
 
+const parseTs = (ts: string | number | undefined | null) => {
+  if (typeof ts === 'number') return ts;
+  if (!ts) return 0;
+  const parts = ts.split(':');
+  if (parts.length >= 3) {
+    return parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseFloat(parts[2]);
+  }
+  return parseFloat(ts) || 0;
+};
+
 export default function ChessBoard({ gameId }: { gameId: string }) {
   const [game, setGame] = useState(new Chess());
   const [selectedSquare, setSelectedSquare] = useState<Square | null>(null);
@@ -40,8 +50,8 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
 
   const { evaluation, bestMove, analyzeFen, isReady } = useStockfish();
   const [reviewIndex, setReviewIndex] = useState<number>(-1);
-  const [whiteClock, setWhiteClock] = useState<number>(300);
-  const [blackClock, setBlackClock] = useState<number>(300);
+  const [whiteClock, setWhiteClock] = useState<number>(0);
+  const [blackClock, setBlackClock] = useState<number>(0);
 
   const [whitePlayerId, setWhitePlayerId] = useState<string | null>(null);
   const [blackPlayerId, setBlackPlayerId] = useState<string | null>(null);
@@ -53,11 +63,6 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
   const loadGameState = () => {
     ApiService.get<any>(`/api/game/${gameId}`)
     .then(data => {
-      const parseTs = (ts: string) => {
-        if (!ts) return 300;
-        const parts = ts.split(':');
-        return parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseFloat(parts[2]);
-      };
       setWhiteClock(parseTs(data.whiteClockRemaining));
       setBlackClock(parseTs(data.blackClockRemaining));
       setWhitePlayerId(data.whitePlayerId);
@@ -115,8 +120,8 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
         .then(() => {
           connection.invoke("JoinGameGroup", gameId);
           connection.on("ReceiveMove", (data) => {
-            setWhiteClock(data.whiteClock || data.WhiteClock);
-            setBlackClock(data.blackClock || data.BlackClock);
+            setWhiteClock(parseTs(data.whiteClock || data.WhiteClock));
+            setBlackClock(parseTs(data.blackClock || data.BlackClock));
             setGame(prevGame => {
               try {
                 const newGame = new Chess();
@@ -138,7 +143,13 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
           connection.on("GameEnded", (data) => {
             setGameOverMsg(`Game Over: ${data.status}`);
           });
-          connection.on("DrawOffered", () => alert("Opponent offered a draw."));
+          connection.on("DrawOffered", (offeredBy) => {
+            const currentPlayerId = localStorage.getItem('playerId');
+            if (offeredBy === currentPlayerId) return;
+            if (window.confirm("Opponent offered a draw. Do you accept?")) {
+              ApiService.post('/api/game/draw', { gameId, playerId: currentPlayerId }).catch(console.error);
+            }
+          });
           connection.on("PlayerJoined", () => {
             loadGameState();
           });
@@ -161,6 +172,12 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
       analyzeFen(fen, 15);
     }
   }, [reviewIndex, game, analyzeFen]);
+
+  const handleTimeout = () => {
+    if (gameOverMsg) return;
+    setGameOverMsg("Finished by Timeout");
+    ApiService.post('/api/game/timeout', { gameId, playerId: localStorage.getItem('playerId') }).catch(console.error);
+  };
 
   const handleMove = (source: Square, target: Square) => {
     if (reviewIndex !== -1 || gameOverMsg) return;
@@ -279,7 +296,7 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
       {/* Center Column: Clocks & Board */}
       <div className="chess-board-container">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-          <GameClock timeRemaining={isFlipped ? whiteClock : blackClock} isActive={game.turn() === (isFlipped ? 'w' : 'b')} />
+          <GameClock timeRemaining={isFlipped ? whiteClock : blackClock} isActive={game.turn() === (isFlipped ? 'w' : 'b')} onTimeout={handleTimeout} />
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
              {isReviewMode && (
                 <span style={{ background: 'var(--accent-primary)', color: '#fff', padding: '2px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold' }}>
@@ -325,7 +342,7 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>
-          <GameClock timeRemaining={isFlipped ? blackClock : whiteClock} isActive={game.turn() === (isFlipped ? 'b' : 'w')} />
+          <GameClock timeRemaining={isFlipped ? blackClock : whiteClock} isActive={game.turn() === (isFlipped ? 'b' : 'w')} onTimeout={handleTimeout} />
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
              {isReviewMode && (
                 <span style={{ padding: '0.5rem', fontWeight: 'bold', color: 'var(--accent-primary)' }}>
@@ -360,10 +377,6 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
             }}
             onDraw={() => {
               ApiService.post('/api/game/draw', { gameId, playerId: localStorage.getItem('playerId') })
-                .catch(console.error);
-            }}
-            onAbort={() => {
-              ApiService.post('/api/game/abort', { gameId, playerId: localStorage.getItem('playerId') })
                 .catch(console.error);
             }}
             onFlipBoard={() => setIsFlipped(f => !f)}

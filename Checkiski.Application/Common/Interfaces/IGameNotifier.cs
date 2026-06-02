@@ -10,4 +10,5 @@ public interface IGameNotifier
     Task GameEndedAsync(Guid gameId, GameStatus status);
     Task MatchFoundAsync(Guid player1Id, Guid player2Id, Guid gameId);
     Task PlayerJoinedAsync(Guid gameId);
+    Task DrawOfferedAsync(Guid gameId, Guid offeredByPlayerId);
 }

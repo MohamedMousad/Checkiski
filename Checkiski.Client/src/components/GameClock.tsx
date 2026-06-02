@@ -2,7 +2,7 @@
 /* eslint-disable */
 import React, { useEffect, useState } from 'react';
 
-export default function GameClock({ timeRemaining, isActive }: { timeRemaining: number, isActive: boolean }) {
+export default function GameClock({ timeRemaining, isActive, onTimeout }: { timeRemaining: number, isActive: boolean, onTimeout?: () => void }) {
   const [time, setTime] = useState(timeRemaining);
 
   useEffect(() => {
@@ -10,18 +10,22 @@ export default function GameClock({ timeRemaining, isActive }: { timeRemaining: 
   }, [timeRemaining]);
 
   useEffect(() => {
-    if (!isActive || time <= 0) return;
+    if (!isActive) return;
+    if (time <= 0) {
+      if (onTimeout) onTimeout();
+      return;
+    }
 
     const interval = setInterval(() => {
       setTime(t => Math.max(0, t - 1));
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isActive]);
+  }, [isActive, time, onTimeout]);
 
   const mins = Math.floor(time / 60);
-  const secs = time % 60;
-  const formattedTime = `${mins}:${secs.toString().padStart(2, '0')}`;
+  const secs = Math.floor(time % 60);
+  const formattedTime = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   const isLowTime = time < 30;
   const isCritical = time < 10;
 
