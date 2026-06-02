@@ -25,7 +25,7 @@ namespace Checkiski.Application.Common.Helpers
                 CreateNoWindow = true
             };
 
-            Process process;
+            Process? process;
             try
             {
                 process = Process.Start(psi);
@@ -44,7 +44,7 @@ namespace Checkiski.Application.Common.Helpers
             await input.WriteLineAsync($"position fen {fen}");
             await input.WriteLineAsync("go depth 12");
 
-            string bestMove = null;
+            string? bestMove = null;
             var lines = new Dictionary<int, (int score, string firstMove)>();
 
             while (true)

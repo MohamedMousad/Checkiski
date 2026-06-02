@@ -40,7 +40,7 @@ namespace Checkiski.Application.Players.Queries.GetPlayerGameHistory
                 .Include(g => g.BlackPlayer)
                 .Where(g => g.WhitePlayerId == request.PlayerId || g.BlackPlayerId == request.PlayerId)
                 .Where(g => g.Status != Domain.Entities.GameStatus.InProgress && g.Status != Domain.Entities.GameStatus.WaitingForOpponent)
-                .OrderByDescending(g => g.CreatedAt)
+                .OrderByDescending(g => g.StartedAt)
                 .ToListAsync(cancellationToken);
 
             var result = new List<GameHistoryDto>();
@@ -65,7 +65,7 @@ namespace Checkiski.Application.Players.Queries.GetPlayerGameHistory
                     GameId = g.Id,
                     OpponentName = opponentName,
                     GameCategory = g.Options?.GameCategory ?? "Standard",
-                    PlayedAt = g.EndedAt ?? g.CreatedAt,
+                    PlayedAt = g.EndedAt ?? g.StartedAt,
                     Outcome = outcome,
                     Color = isWhite ? "White" : "Black"
                 });
