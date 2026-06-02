@@ -129,10 +129,14 @@ using (var scope = app.Services.CreateScope())
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         db.Database.Migrate();
         Console.WriteLine("Database migration completed successfully.");
+
+        // Wait on the puzzle seeder to validate and seed the puzzles
+        await Checkiski.Infrastructure.Data.PuzzleSeeder.SeedPuzzlesAsync(db, @"D:\Checkiski\Checkiski.WebApi\stockfish.exe");
+        Console.WriteLine("Puzzle seeder completed.");
     } 
     catch (Exception ex) 
     {
-        Console.WriteLine($"Database migration failed: {ex.Message}");
+        Console.WriteLine($"Database migration/seeding failed: {ex.Message}");
     }
 }
 

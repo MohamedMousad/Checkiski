@@ -116,6 +116,13 @@ namespace Checkiski.WebApi.Controllers
             });
         }
 
+        [HttpGet("profile/{id}/history")]
+        public async Task<IActionResult> GetProfileHistory(System.Guid id)
+        {
+            var history = await _mediator.Send(new Checkiski.Application.Players.Queries.GetPlayerGameHistory.GetPlayerGameHistoryQuery { PlayerId = id });
+            return Ok(history);
+        }
+
         [HttpGet("leaderboard")]
         public async Task<IActionResult> GetLeaderboard([FromQuery] string? category)
         {

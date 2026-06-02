@@ -8,6 +8,7 @@ export default function Profile() {
   const id = params?.id as string;
   const router = useRouter();
   const [profile, setProfile] = useState<any>(null);
+  const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,6 +24,11 @@ export default function Profile() {
         const endpoint = id === 'me' ? '/api/player/profile/me' : `/api/player/profile/${id}`;
         const data = await ApiService.get<any>(endpoint);
         setProfile(data);
+        
+        if (data && data.id) {
+          const historyData = await ApiService.get<any[]>(`/api/player/profile/${data.id}/history`);
+          setHistory(historyData || []);
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -178,6 +184,59 @@ export default function Profile() {
             </div>
           ))}
         </div>
+
+        {/* Game History Section */}
+        <div style={{ marginTop: 'var(--space-2xl)', marginBottom: 'var(--space-md)' }}>
+          <p className="text-caption" style={{ color: 'var(--color-emerald-dim)', marginBottom: 'var(--space-lg)' }}>
+            Recent Games
+          </p>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+          {history.length === 0 ? (
+            <div className="glass-panel" style={{ padding: 'var(--space-xl)', textAlign: 'center', color: 'var(--color-text-faint)' }}>
+              No recent games played.
+            </div>
+          ) : (
+            history.map((g, i) => (
+              <div 
+                key={g.gameId} 
+                className="glass-panel hover-card" 
+                style={{ 
+                  padding: 'var(--space-md) var(--space-xl)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  animation: `fadeInUp 0.5s var(--ease-out) ${0.3 + i * 0.05}s forwards`,
+                  opacity: 0,
+                  borderLeft: `4px solid ${g.outcome === 'Win' ? 'var(--color-emerald)' : g.outcome === 'Loss' ? '#ef4444' : '#f59e0b'}`,
+                  cursor: 'pointer'
+                }}
+                onClick={() => router.push(`/play/${g.gameId}`)}
+              >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
+                    <span style={{ 
+                      display: 'inline-block', width: '12px', height: '12px', borderRadius: '50%',
+                      backgroundColor: g.color === 'White' ? '#fff' : '#222',
+                      border: '1px solid #555'
+                    }} title={`Played as ${g.color}`} />
+                    <span className="text-body" style={{ fontWeight: 600 }}>vs {g.opponentName}</span>
+                  </div>
+                  <span className="text-caption" style={{ color: 'var(--color-text-faint)' }}>
+                    {new Date(g.playedAt).toLocaleDateString()} • {g.gameCategory}
+                  </span>
+                </div>
+                <div style={{ 
+                  fontWeight: 'bold', 
+                  fontSize: '1.1rem',
+                  color: g.outcome === 'Win' ? 'var(--color-emerald)' : g.outcome === 'Loss' ? '#ef4444' : '#f59e0b'
+                }}>
+                  {g.outcome}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
       </div>
     </div>
   );

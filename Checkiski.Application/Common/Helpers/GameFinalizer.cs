@@ -9,10 +9,29 @@ namespace Checkiski.Application.Common.Helpers
 {
     public static class GameFinalizer
     {
-        public static async Task FinalizeRatingsAsync(IAppDbContext context, Game game, CancellationToken cancellationToken)
+        public static async Task FinalizeGameAsync(IAppDbContext context, Game game, CancellationToken cancellationToken)
         {
-            if (game.Options == null || !game.Options.Rated) return;
             if (game.Status == GameStatus.InProgress || game.Status == GameStatus.Aborted || game.Status == GameStatus.WaitingForOpponent) return;
+
+            if (game.LastMoveAt.HasValue)
+            {
+                var now = game.EndedAt ?? DateTime.UtcNow;
+                var elapsed = now - game.LastMoveAt.Value;
+                var isWhiteTurn = game.CurrentTurn == Checkiski.Domain.Entities.Color.White;
+                if (isWhiteTurn)
+                {
+                    game.WhiteClockRemaining -= elapsed;
+                    if (game.WhiteClockRemaining.TotalSeconds < 0) game.WhiteClockRemaining = TimeSpan.Zero;
+                }
+                else
+                {
+                    game.BlackClockRemaining -= elapsed;
+                    if (game.BlackClockRemaining.TotalSeconds < 0) game.BlackClockRemaining = TimeSpan.Zero;
+                }
+                game.LastMoveAt = null;
+            }
+
+            if (game.Options == null || !game.Options.Rated) return;
             if (!game.WhitePlayerId.HasValue || !game.BlackPlayerId.HasValue) return;
 
             var white = await context.Players.FindAsync(new object[] { game.WhitePlayerId.Value }, cancellationToken);

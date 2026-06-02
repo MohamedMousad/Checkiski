@@ -69,6 +69,9 @@ namespace Checkiski.Application.Games.Commands.SubmitMove
             }
             game.LastMoveAt = now;
 
+            // Implicitly decline any pending draw offers upon making a move
+            game.DrawOfferedByPlayerId = null;
+
             // Update FEN and Turn from custom engine
             game.CurrentFen = board.ToFen();
             game.CurrentTurn = board.CurrentTurn;
@@ -120,7 +123,7 @@ namespace Checkiski.Application.Games.Commands.SubmitMove
 
             if (game.Status != Checkiski.Domain.Entities.GameStatus.InProgress)
             {
-                await Checkiski.Application.Common.Helpers.GameFinalizer.FinalizeRatingsAsync(_context, game, cancellationToken);
+                await Checkiski.Application.Common.Helpers.GameFinalizer.FinalizeGameAsync(_context, game, cancellationToken);
             }
 
             await _context.SaveChangesAsync(cancellationToken);
@@ -128,7 +131,7 @@ namespace Checkiski.Application.Games.Commands.SubmitMove
             await _notifier.MoveSubmittedAsync(game.Id, game.CurrentFen, game.Pgn, game.WhiteClockRemaining, game.BlackClockRemaining);
             if (game.Status != Checkiski.Domain.Entities.GameStatus.InProgress)
             {
-                await _notifier.GameEndedAsync(game.Id, game.Status);
+                await _notifier.GameEndedAsync(game.Id, game.Status, game.WhiteClockRemaining, game.BlackClockRemaining);
             }
 
             return true;

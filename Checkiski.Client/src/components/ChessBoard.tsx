@@ -1,7 +1,7 @@
 /* eslint-disable */
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { HubConnection, HubConnectionBuilder } from '@microsoft/signalr';
 import { Chess, Square } from 'chess.js';
 import { useStockfish } from '../hooks/useStockfish';
@@ -23,7 +23,7 @@ const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 const ranks = ['8', '7', '6', '5', '4', '3', '2', '1'];
 const getSquare = (r: number, c: number) => (files[c] + ranks[r]) as Square;
 
-const playSound = (type: 'move' | 'capture') => {
+const playSound = (type: 'move' | 'capture' | 'checkmate' | 'resign') => {
   try {
     const audio = new Audio(`/${type}.mp3`);
     audio.play().catch(() => {});
@@ -47,6 +47,7 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
   const [connection, setConnection] = useState<HubConnection | null>(null);
   const [isFlipped, setIsFlipped] = useState(false);
   const [gameOverMsg, setGameOverMsg] = useState<string | null>(null);
+  const [drawOfferReceived, setDrawOfferReceived] = useState(false);
 
   const { evaluation, bestMove, analyzeFen, isReady } = useStockfish();
   const [reviewIndex, setReviewIndex] = useState<number>(-1);
@@ -59,6 +60,16 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
   const [blackPlayerName, setBlackPlayerName] = useState<string>('Opponent');
   const currentUserId = typeof window !== 'undefined' ? localStorage.getItem('playerId') : null;
   const currentUsername = typeof window !== 'undefined' ? localStorage.getItem('username') : 'You';
+
+  const [roomSynced, setRoomSynced] = useState(false);
+  const roomSyncedRef = useRef(false);
+
+  const syncRoom = () => {
+    if (!roomSyncedRef.current) {
+      roomSyncedRef.current = true;
+      setRoomSynced(true);
+    }
+  };
 
   const loadGameState = () => {
     ApiService.get<any>(`/api/game/${gameId}`)
@@ -118,7 +129,15 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
     if (connection) {
       connection.start()
         .then(() => {
-          connection.invoke("JoinGameGroup", gameId);
+          connection.invoke("JoinGameGroup", gameId).then(() => {
+            connection.invoke("PlayerReady", gameId, false);
+          });
+          connection.on("OpponentReady", (isReply: boolean) => {
+            syncRoom();
+            if (!isReply) {
+              connection.invoke("PlayerReady", gameId, true);
+            }
+          });
           connection.on("ReceiveMove", (data) => {
             setWhiteClock(parseTs(data.whiteClock || data.WhiteClock));
             setBlackClock(parseTs(data.blackClock || data.BlackClock));
@@ -126,13 +145,21 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
               try {
                 const newGame = new Chess();
                 newGame.loadPgn(data.pgn || data.Pgn);
-                playSound('move'); // Assume move, tracking capture precisely from PGN is harder here
+                if (newGame.isCheckmate()) {
+                  playSound('checkmate');
+                } else {
+                  playSound('move');
+                }
                 return newGame;
               } catch (e) {
                 console.warn("Failed to load PGN, falling back to FEN", e);
                 try {
                   const newGame = new Chess(data.fen || data.Fen);
-                  playSound('move');
+                  if (newGame.isCheckmate()) {
+                    playSound('checkmate');
+                  } else {
+                    playSound('move');
+                  }
                   return newGame;
                 } catch (e2) {
                   return prevGame;
@@ -141,14 +168,26 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
             });
           });
           connection.on("GameEnded", (data) => {
-            setGameOverMsg(`Game Over: ${data.status}`);
+            const status = data.status || data.Status;
+            setGameOverMsg(`Game Over: ${status}`);
+            if (data.whiteClock !== undefined || data.WhiteClock !== undefined) {
+               setWhiteClock(parseTs(data.whiteClock || data.WhiteClock));
+               setBlackClock(parseTs(data.blackClock || data.BlackClock));
+            }
+            // Use local state from 'game' setter to check for mate
+            setGame(prev => {
+              if (prev.isCheckmate()) {
+                playSound('checkmate');
+              } else if (status.includes('Won')) {
+                playSound('resign');
+              }
+              return prev;
+            });
           });
           connection.on("DrawOffered", (offeredBy) => {
             const currentPlayerId = localStorage.getItem('playerId');
             if (offeredBy === currentPlayerId) return;
-            if (window.confirm("Opponent offered a draw. Do you accept?")) {
-              ApiService.post('/api/game/draw', { gameId, playerId: currentPlayerId }).catch(console.error);
-            }
+            setDrawOfferReceived(true);
           });
           connection.on("PlayerJoined", () => {
             loadGameState();
@@ -176,6 +215,7 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
   const handleTimeout = () => {
     if (gameOverMsg) return;
     setGameOverMsg("Finished by Timeout");
+    playSound('resign');
     ApiService.post('/api/game/timeout', { gameId, playerId: localStorage.getItem('playerId') }).catch(console.error);
   };
 
@@ -188,8 +228,6 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
 
       if (result) {
         setGame(newGame);
-        playSound(result.captured ? 'capture' : 'move');
-        
         // Convert 'e2' to fromX=4, fromY=1
         const files = 'abcdefgh';
         const fromX = files.indexOf(result.from[0]);
@@ -197,12 +235,19 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
         const toX = files.indexOf(result.to[0]);
         const toY = parseInt(result.to[1]) - 1;
         const promotion = result.promotion || null;
+
         // Determine game status
         let status = '';
-        if (newGame.isCheckmate()) status = 'checkmate';
+        if (newGame.isCheckmate()) {
+          status = 'checkmate';
+          playSound('checkmate');
+        }
         else if (newGame.isDraw()) status = 'draw';
         else if (newGame.isStalemate()) status = 'stalemate';
         else if (newGame.isThreefoldRepetition()) status = 'repetition';
+        else {
+          playSound(result.captured ? 'capture' : 'move');
+        }
 
         const fen = newGame.fen();
         const san = result.san;
@@ -296,7 +341,7 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
       {/* Center Column: Clocks & Board */}
       <div className="chess-board-container">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-          <GameClock timeRemaining={isFlipped ? whiteClock : blackClock} isActive={Boolean(whitePlayerId && blackPlayerId) && !gameOverMsg && game.turn() === (isFlipped ? 'w' : 'b')} onTimeout={handleTimeout} />
+          <GameClock timeRemaining={isFlipped ? whiteClock : blackClock} isActive={roomSynced && !gameOverMsg && game.turn() === (isFlipped ? 'w' : 'b')} onTimeout={handleTimeout} />
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
              {isReviewMode && (
                 <span style={{ background: 'var(--accent-primary)', color: '#fff', padding: '2px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold' }}>
@@ -342,7 +387,7 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>
-          <GameClock timeRemaining={isFlipped ? blackClock : whiteClock} isActive={Boolean(whitePlayerId && blackPlayerId) && !gameOverMsg && game.turn() === (isFlipped ? 'b' : 'w')} onTimeout={handleTimeout} />
+          <GameClock timeRemaining={isFlipped ? blackClock : whiteClock} isActive={roomSynced && !gameOverMsg && game.turn() === (isFlipped ? 'b' : 'w')} onTimeout={handleTimeout} />
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
              {isReviewMode && (
                 <span style={{ padding: '0.5rem', fontWeight: 'bold', color: 'var(--accent-primary)' }}>
@@ -389,6 +434,64 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
           )}
         </div>
       </div>
+      
+      {drawOfferReceived && !gameOverMsg && (
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 1000,
+          backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }}>
+          <div className="glass-panel" style={{ 
+            padding: '2.5rem', 
+            textAlign: 'center',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: '16px',
+            background: 'linear-gradient(145deg, rgba(30,30,30,0.95), rgba(15,15,15,0.98))',
+            boxShadow: '0 12px 40px rgba(0,0,0,0.6)',
+            minWidth: '320px'
+          }}>
+            <h3 style={{ marginBottom: '1rem', color: '#fff', fontSize: '1.75rem', fontWeight: 600 }}>Draw Offered</h3>
+            <p style={{ marginBottom: '2rem', color: '#aaa', fontSize: '1rem', lineHeight: 1.5 }}>
+              Your opponent has offered a draw.<br/>Do you accept?
+            </p>
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+              <button 
+                onClick={() => {
+                  setDrawOfferReceived(false);
+                  ApiService.post('/api/game/draw', { gameId, playerId: localStorage.getItem('playerId') }).catch(console.error);
+                }} 
+                style={{ 
+                  padding: '12px 24px', backgroundColor: '#3b82f6', color: '#fff', 
+                  border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600,
+                  flex: 1, fontSize: '1rem', transition: 'background-color 0.2s ease'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
+                onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#3b82f6'}
+              >
+                Accept
+              </button>
+              <button 
+                onClick={() => setDrawOfferReceived(false)} 
+                style={{ 
+                  padding: '12px 24px', backgroundColor: 'transparent', color: '#ef4444', 
+                  border: '1px solid #ef4444', borderRadius: '8px', cursor: 'pointer', fontWeight: 600,
+                  flex: 1, fontSize: '1rem', transition: 'all 0.2s ease'
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.backgroundColor = '#ef4444';
+                  e.currentTarget.style.color = '#fff';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = '#ef4444';
+                }}
+              >
+                Decline
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

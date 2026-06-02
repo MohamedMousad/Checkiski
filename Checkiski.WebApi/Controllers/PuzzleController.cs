@@ -1,6 +1,9 @@
 using Checkiski.Domain.Entities;
+using Checkiski.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Checkiski.WebApi.Controllers
 {
@@ -8,37 +11,22 @@ namespace Checkiski.WebApi.Controllers
     [Route("api/[controller]")]
     public class PuzzleController : ControllerBase
     {
+        private readonly IAppDbContext _context;
+
+        public PuzzleController(IAppDbContext context)
+        {
+            _context = context;
+        }
+
         [HttpGet]
         public IActionResult GetPuzzles([FromQuery] int rating = 1200)
         {
-            // For now, mock a few puzzles.
-            // In a real app we'd query Lichess API or a database.
-            var puzzles = new List<Puzzle>
-            {
-                new Puzzle
-                {
-                    Fen = "r1bqk2r/pppp1ppp/2n2n2/2b1p3/2B1P3/2N2N2/PPPP1PPP/R1BQK2R w KQkq - 6 5",
-                    Solution = "f3e5 c6e5 d2d4",
-                    Rating = 1200,
-                    Themes = "fork, opening"
-                },
-                new Puzzle
-                {
-                    Fen = "1k1r4/pp3p1p/5p2/8/8/8/PP3PPP/2R3K1 w - - 0 1",
-                    Solution = "c1c8 d8c8",
-                    Rating = 1400,
-                    Themes = "backRankMate"
-                },
-                new Puzzle
-                {
-                    Fen = "rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 1 3",
-                    Solution = "g4h4", // Just mock solutions
-                    Rating = 800,
-                    Themes = "foolsMate"
-                }
-            };
+            var puzzles = _context.Puzzles.ToList();
+            if (!puzzles.Any()) return Ok(new List<Puzzle>());
 
-            return Ok(puzzles);
+            // Return puzzles ordered by closest rating match
+            var sorted = puzzles.OrderBy(p => Math.Abs(p.Rating - rating)).Take(5).ToList();
+            return Ok(sorted);
         }
     }
 }

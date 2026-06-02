@@ -5,8 +5,15 @@ import { useStockfish } from '../hooks/useStockfish';
 import { Chess } from 'chess.js';
 
 export default function GameAnalysis({ pgn }: { pgn: string }) {
-  const { evaluation, analyzeFen, isReady } = useStockfish();
+  const { evaluation, bestMove, analyzeFen, isReady } = useStockfish();
   const [accuracy, setAccuracy] = useState<number | null>(null);
+  const [classifications, setClassifications] = useState({
+    excellent: 0,
+    good: 0,
+    inaccuracy: 0,
+    mistake: 0,
+    blunder: 0
+  });
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [progress, setProgress] = useState(0);
   
@@ -57,54 +64,63 @@ export default function GameAnalysis({ pgn }: { pgn: string }) {
 
   // Effect to process the evaluation updates
   useEffect(() => {
-    if (!analysisState.current.analyzing || !isReady) return;
+    if (!analysisState.current.analyzing || !isReady || !bestMove) return;
 
-    // We received an evaluation for the current position
-    // Note: Stockfish sends continuous updates for the same position. 
-    // We should wait a brief moment to get a stable eval, but for this simple 
-    // implementation, we will just grab the first valid evaluation it gives us 
-    // and move to the next position immediately to keep the UI fast.
+    const state = analysisState.current;
     
-    // To prevent immediate skipping, we use a small timeout or just rely on the first evaluation chunk.
-    const timer = setTimeout(() => {
-      const state = analysisState.current;
-      
-      // Store the current evaluation
-      state.evaluations.push(evaluation);
-      
-      state.currentIndex++;
-      setProgress(Math.round((state.currentIndex / state.totalMoves) * 100));
+    // Store the current evaluation
+    state.evaluations.push(evaluation);
+    
+    state.currentIndex++;
+    setProgress(Math.round((state.currentIndex / state.totalMoves) * 100));
 
-      if (state.currentIndex < state.totalMoves) {
-        // Next move
-        analyzeFen(state.fens[state.currentIndex], 10);
-      } else {
-        // Finished
-        state.analyzing = false;
-        
-        const tempGame = new Chess();
-        try { tempGame.loadPgn(pgn); } catch(err){}
-        
-        let baseScore = 80;
-        if (tempGame.isCheckmate()) {
-             baseScore = 90;
-        } else if (tempGame.isDraw() || tempGame.isStalemate()) {
-             baseScore = 85;
-        }
+    if (state.currentIndex < state.totalMoves) {
+      // Next move
+      analyzeFen(state.fens[state.currentIndex], 10);
+    } else {
+      // Finished
+      state.analyzing = false;
+      
+      let excellent = 0;
+      let good = 0;
+      let inaccuracy = 0;
+      let mistake = 0;
+      let blunder = 0;
+      
+      let totalLoss = 0;
 
-        // Add some pseudo-randomness based on game length and final evaluation
-        const finalEval = state.evaluations[state.evaluations.length - 1] || 0;
-        let score = baseScore + (Math.abs(finalEval) > 10 ? 5 : 0) + (Math.random() * 5);
+      for (let i = 1; i < state.evaluations.length; i++) {
+        const prevFen = state.fens[i - 1];
+        const currFen = state.fens[i];
         
-        score = Math.max(0, Math.min(100, score)); // clamp 0-100
+        const prevIsWhite = prevFen.includes(' w ');
+        const currIsWhite = currFen.includes(' w ');
         
-        setAccuracy(score);
-        setIsAnalyzing(false);
+        // Stockfish score is from perspective of side to move. We convert to absolute (White's advantage).
+        const prevAbs = prevIsWhite ? state.evaluations[i - 1] : -state.evaluations[i - 1];
+        const currAbs = currIsWhite ? state.evaluations[i] : -state.evaluations[i];
+        
+        // diff > 0 means the player who moved gained an advantage. diff < 0 means they lost an advantage.
+        const diff = prevIsWhite ? (currAbs - prevAbs) : (prevAbs - currAbs);
+        
+        if (diff > 0.5) excellent++;
+        else if (diff > -0.5) good++;
+        else if (diff > -1.0) inaccuracy++;
+        else if (diff > -2.0) mistake++;
+        else blunder++;
+
+        if (diff < 0) totalLoss += Math.abs(diff);
       }
-    }, 200); // 200ms per move calculation
 
-    return () => clearTimeout(timer);
-  }, [evaluation, isReady, analyzeFen]);
+      const avgLoss = (state.totalMoves > 0) ? (totalLoss / state.totalMoves) : 0;
+      let accuracyScore = 100 - (avgLoss * 15); // Scale loss to percentage
+      accuracyScore = Math.max(0, Math.min(100, accuracyScore));
+      
+      setClassifications({ excellent, good, inaccuracy, mistake, blunder });
+      setAccuracy(accuracyScore);
+      setIsAnalyzing(false);
+    }
+  }, [bestMove, isReady, analyzeFen, evaluation]);
 
   if (!pgn) return null;
 
@@ -130,7 +146,14 @@ export default function GameAnalysis({ pgn }: { pgn: string }) {
           <div style={{ fontSize: '4rem', fontWeight: 'bold', color: accuracy > 85 ? '#4caf50' : accuracy > 60 ? 'var(--accent-primary)' : '#ff9800' }}>
             {accuracy.toFixed(1)}%
           </div>
-          <div style={{ color: '#aaa', marginTop: '0.5rem' }}>Accuracy Score</div>
+          <div style={{ color: '#aaa', marginTop: '0.5rem', marginBottom: '1.5rem' }}>Accuracy Score</div>
+          <div style={{ display: 'flex', justifyContent: 'space-around', gap: '0.5rem', flexWrap: 'wrap', fontSize: '0.9rem' }}>
+             <div style={{ color: '#4caf50' }}><strong>{classifications.excellent}</strong> Excellent</div>
+             <div style={{ color: '#81c784' }}><strong>{classifications.good}</strong> Good</div>
+             <div style={{ color: '#ffb74d' }}><strong>{classifications.inaccuracy}</strong> Inaccuracies</div>
+             <div style={{ color: '#ff9800' }}><strong>{classifications.mistake}</strong> Mistakes</div>
+             <div style={{ color: '#f44336' }}><strong>{classifications.blunder}</strong> Blunders</div>
+          </div>
         </div>
       ) : null}
     </div>
