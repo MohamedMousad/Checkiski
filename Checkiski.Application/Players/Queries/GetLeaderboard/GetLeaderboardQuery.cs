@@ -26,6 +26,7 @@ namespace Checkiski.Application.Players.Queries.GetLeaderboard
 
     public class GetLeaderboardQuery : IRequest<List<LeaderboardPlayerDto>>
     {
+        public string? Category { get; set; }
     }
 
     public class GetLeaderboardQueryHandler : IRequestHandler<GetLeaderboardQuery, List<LeaderboardPlayerDto>>
@@ -39,10 +40,26 @@ namespace Checkiski.Application.Players.Queries.GetLeaderboard
 
         public async Task<List<LeaderboardPlayerDto>> Handle(GetLeaderboardQuery request, CancellationToken cancellationToken)
         {
-            var players = await _context.Players
-                .OrderByDescending(p => p.Rating)
-                .Take(50)
-                .ToListAsync(cancellationToken);
+            IQueryable<Domain.Entities.Player> query = _context.Players;
+            
+            if (request.Category?.ToLower() == "bullet")
+            {
+                query = query.OrderByDescending(p => p.BulletRating);
+            }
+            else if (request.Category?.ToLower() == "blitz")
+            {
+                query = query.OrderByDescending(p => p.BlitzRating);
+            }
+            else if (request.Category?.ToLower() == "rapid")
+            {
+                query = query.OrderByDescending(p => p.RapidRating);
+            }
+            else 
+            {
+                query = query.OrderByDescending(p => p.Rating);
+            }
+
+            var players = await query.Take(50).ToListAsync(cancellationToken);
 
             return players.Select(p => new LeaderboardPlayerDto
             {

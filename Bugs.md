@@ -90,24 +90,28 @@
     - Checkiski.Application/Games/Commands/OfferDraw/OfferDrawCommand.cs
     - Checkiski.Application/Games/Commands/TimeoutGame/TimeoutGameCommand.cs
 
-- [ ] **Task ID: BUG-07**
+- [x] **Task ID: BUG-07**
   - **Title:** Clock Countdown Active Prior to Complete Room Synchronization
   - **Symptom:** Online matchmaking clocks begin counting down while a player is sitting alone in a room waiting for an opponent.
   - **Expected Behavior:** Clocks must default to an active state of `false`. Timers must remain entirely paused until a handshake event confirms both players have established concurrent socket connections to the game room.
   - **Target Scope:** Matchmaking connection controller, web socket connection listeners, timer initialization state.
   - **Verification Criteria:** Joining an empty room presents the base clock layout frozen at maximum time allocation. Clock only begins ticking once the second socket ID connects.
-  - **Status:** [ ] Open
-  - **Resolution Manifest:** ---
+  - **Status:** [x] Resolved
+  - **Resolution Manifest:** 
+    - Checkiski.Client/src/components/ChessBoard.tsx
 
 ## 📊 Leaderboards & Analytics
 
-- [ ] **Task ID: BUG-08**
+- [x] **Task ID: BUG-08**
   - **Title:** Monolithic and Static System Leaderboard View
   - **Symptom:** The ranking page uses a flat, combined roster table that completely mixes game category modes together without dynamic updates.
   - **Expected Behavior:** Implement modular API logic and UI filtering tabs for discrete chess disciplines (Bullet, Blitz, Rapid). The table must query the database sorting values dynamically based on the active tab context.
   - **Target Scope:** Leaderboard database queries, ranking interface views, tab selection event controllers.
   - **Verification Criteria:** Toggling the "Blitz" tab executes a separate fetch request and displays only users with Blitz ratings sorted in descending order.
-  - **Status:** [ ] Open
-  - **Resolution Manifest:** ```
+  - **Status:** [x] Resolved
+  - **Resolution Manifest:**
+    - Checkiski.Application/Players/Queries/GetLeaderboard/GetLeaderboardQuery.cs
+    - Checkiski.WebApi/Controllers/PlayerController.cs
+    - Checkiski.Client/src/app/leaderboard/page.tsx
 
 Save this exact text into your project workspace. This gives your agent a highly strict, analytical blueprint to work off of, dramatically minimizing any risk of the AI "hallucinating" or introducing wild code bugs elsewhere.
