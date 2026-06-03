@@ -251,15 +251,15 @@ export default function Home() {
       <section style={{ padding: 'var(--space-3xl) 5vw', background: 'var(--bg-deep)', borderTop: '1px solid var(--glass-border)', borderBottom: '1px solid var(--glass-border)' }}>
         <div style={{ maxWidth: '1400px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '2rem' }}>
           <div>
-            <div className="text-hero" style={{ fontSize: 'clamp(2.5rem, 4vw, 4rem)', color: 'var(--accent-lime)' }}>12M+</div>
+            <div className="text-hero" style={{ fontSize: 'clamp(2.5rem, 4vw, 4rem)', color: 'var(--accent-lime)' }}>1,420+</div>
             <div className="text-caption" style={{ color: 'var(--text-secondary)' }}>Matches Played</div>
           </div>
           <div>
-            <div className="text-hero" style={{ fontSize: 'clamp(2.5rem, 4vw, 4rem)', color: 'var(--text-primary)' }}>50K+</div>
+            <div className="text-hero" style={{ fontSize: 'clamp(2.5rem, 4vw, 4rem)', color: 'var(--text-primary)' }}>12+</div>
             <div className="text-caption" style={{ color: 'var(--text-secondary)' }}>Active Masters</div>
           </div>
           <div>
-            <div className="text-hero" style={{ fontSize: 'clamp(2.5rem, 4vw, 4rem)', color: 'var(--text-primary)' }}>&lt;10ms</div>
+            <div className="text-hero" style={{ fontSize: 'clamp(2.5rem, 4vw, 4rem)', color: 'var(--text-primary)' }}>&lt;45ms</div>
             <div className="text-caption" style={{ color: 'var(--text-secondary)' }}>Server Latency</div>
           </div>
           <div>
