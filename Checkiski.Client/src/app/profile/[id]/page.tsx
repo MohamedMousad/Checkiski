@@ -210,7 +210,7 @@ export default function Profile() {
                   borderLeft: `4px solid ${g.outcome === 'Win' ? 'var(--color-emerald)' : g.outcome === 'Loss' ? '#ef4444' : '#f59e0b'}`,
                   cursor: 'pointer'
                 }}
-                onClick={() => router.push(`/play/${g.gameId}`)}
+                onClick={() => router.push(`/play?gameId=${g.gameId}`)}
               >
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>

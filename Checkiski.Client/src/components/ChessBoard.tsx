@@ -83,6 +83,9 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
       if (data.blackPlayerId && data.blackPlayerId === currentUserId) {
          setIsFlipped(true);
       }
+      if (data.status && data.status !== 'InProgress' && data.status !== 'WaitingForOpponent') {
+        setGameOverMsg(`Game Over: ${data.status}`);
+      }
       if (data.pgn) {
         setGame(prev => {
           const newGame = new Chess();
