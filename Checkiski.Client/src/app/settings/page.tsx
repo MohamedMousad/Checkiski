@@ -168,7 +168,7 @@ export default function Settings() {
                       const { ApiService } = await import('../../services/api');
                       // Using fetch directly because ApiService.post might send JSON by default
                       const token = localStorage.getItem('token');
-                      const response = await fetch(`${ApiService.baseUrl}/api/player/upload-profile-picture`, {
+                      const response = await fetch(`${ApiService.getBaseUrl()}/api/player/upload-profile-picture`, {
                         method: 'POST',
                         headers: {
                           'Authorization': `Bearer ${token}`
