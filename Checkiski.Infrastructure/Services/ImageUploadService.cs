@@ -14,16 +14,22 @@ namespace Checkiski.Infrastructure.Services
 
         public ImageUploadService(IConfiguration configuration)
         {
-            var account = new Account(
-                configuration["Cloudinary:CloudName"],
-                configuration["Cloudinary:ApiKey"],
-                configuration["Cloudinary:ApiSecret"]
-            );
-            _cloudinary = new Cloudinary(account);
+            var cloudName = configuration["Cloudinary:CloudName"];
+            var apiKey = configuration["Cloudinary:ApiKey"];
+            var apiSecret = configuration["Cloudinary:ApiSecret"];
+
+            if (!string.IsNullOrEmpty(cloudName) && !string.IsNullOrEmpty(apiKey) && !string.IsNullOrEmpty(apiSecret))
+            {
+                var account = new Account(cloudName, apiKey, apiSecret);
+                _cloudinary = new Cloudinary(account);
+            }
         }
 
         public async Task<string> UploadImageAsync(Stream fileStream, string fileName, CancellationToken cancellationToken = default)
         {
+            if (_cloudinary == null)
+                return null;
+
             if (fileStream == null || fileStream.Length == 0)
                 return null;
 
