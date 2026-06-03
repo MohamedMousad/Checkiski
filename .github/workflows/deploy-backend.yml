@@ -37,6 +37,9 @@ jobs:
       - name: Generate web.config with secrets
         env:
           DB_CONNECTION: ${{ secrets.DB_CONNECTION }}
+          CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+          CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+          CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
         run: |
           cat > ./out/web.config << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
@@ -54,6 +57,9 @@ jobs:
                   <environmentVariables>
                     <environmentVariable name="ASPNETCORE_ENVIRONMENT" value="Production" />
                     <environmentVariable name="ConnectionStrings__DefaultConnection" value="__DB_CONNECTION__" />
+                    <environmentVariable name="Cloudinary__CloudName" value="__CLOUDINARY_CLOUD_NAME__" />
+                    <environmentVariable name="Cloudinary__ApiKey" value="__CLOUDINARY_API_KEY__" />
+                    <environmentVariable name="Cloudinary__ApiSecret" value="__CLOUDINARY_API_SECRET__" />
                   </environmentVariables>
                 </aspNetCore>
               </system.webServer>
@@ -64,8 +70,11 @@ jobs:
           # Strip leading whitespace from heredoc
           sed -i 's/^          //' ./out/web.config
 
-          # Inject the actual secret value
+          # Inject the actual secret values
           sed -i "s|__DB_CONNECTION__|${DB_CONNECTION}|g" ./out/web.config
+          sed -i "s|__CLOUDINARY_CLOUD_NAME__|${CLOUDINARY_CLOUD_NAME}|g" ./out/web.config
+          sed -i "s|__CLOUDINARY_API_KEY__|${CLOUDINARY_API_KEY}|g" ./out/web.config
+          sed -i "s|__CLOUDINARY_API_SECRET__|${CLOUDINARY_API_SECRET}|g" ./out/web.config
 
           echo "--- web.config generated (secrets redacted) ---"
           sed 's/value="Host=.*/value="[REDACTED]"/' ./out/web.config
