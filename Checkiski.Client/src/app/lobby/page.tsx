@@ -68,25 +68,54 @@ export default function LobbyPage() {
         </div>
       ) : error ? (
         error.includes('401') ? (
-          <div className="glass-panel" style={{
-            padding: 'var(--space-4xl)',
-            textAlign: 'center',
+          <div className="responsive-grid-2" style={{
             animation: 'fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+            alignItems: 'center',
+            gap: '3rem',
+            width: '100%',
           }}>
-            <div style={{ fontSize: '3rem', marginBottom: 'var(--space-md)', opacity: 0.9 }}>♟️</div>
-            <h2 className="text-heading" style={{ fontSize: '1.5rem', marginBottom: 'var(--space-sm)' }}>
-              Exclusive Access Required
-            </h2>
-            <p className="text-body" style={{ marginBottom: 'var(--space-xl)', color: 'var(--text-muted)' }}>
-              The Global Arena is reserved for registered masters. Sign in or establish your legacy to enter.
-            </p>
-            <div style={{ display: 'flex', gap: 'var(--space-md)', justifyContent: 'center' }}>
-              <button onClick={() => router.push('/login')} className="btn-secondary" style={{ padding: '12px 28px' }}>
-                SIGN IN
-              </button>
-              <button onClick={() => router.push('/register')} className="btn-primary" style={{ padding: '12px 28px' }}>
-                <span>REGISTER NOW</span>
-              </button>
+            <div className="glass-panel" style={{
+              width: '100%', aspectRatio: '1/1', overflow: 'hidden', position: 'relative',
+              boxShadow: 'var(--shadow-lg)'
+            }}>
+              <img src="/images/lobby-arena.png" alt="Lobby Arena" style={{
+                width: '100%', height: '100%', objectFit: 'cover', filter: 'contrast(1.1) brightness(0.9)',
+                transition: 'transform 10s ease'
+              }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.05)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'} />
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, var(--bg-deep), transparent 50%)' }} />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xl)' }}>
+              <div>
+                <h2 className="text-display" style={{ fontSize: '2.5rem', marginBottom: 'var(--space-sm)' }}>
+                  Enter the Arena
+                </h2>
+                <p className="text-body" style={{ color: 'var(--text-muted)' }}>
+                  Unlock full access to the premier online chess experience. Join thousands of players worldwide.
+                </p>
+              </div>
+
+              <div style={{ display: 'grid', gap: 'var(--space-md)' }}>
+                {[
+                  { title: "Live Matchmaking", desc: "Instantly pair with players of similar skill." },
+                  { title: "Grandmaster Spectating", desc: "Watch top players clash in real-time." },
+                  { title: "Engine Analysis", desc: "Review your games with Stockfish 16." }
+                ].map((feature, i) => (
+                  <div key={i} className="glass-panel hover-card" style={{ padding: 'var(--space-md) var(--space-lg)' }}>
+                    <h3 className="text-heading" style={{ fontSize: '1.1rem', color: 'var(--accent-lime)' }}>{feature.title}</h3>
+                    <p className="text-caption" style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>{feature.desc}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ display: 'flex', gap: 'var(--space-md)', marginTop: 'var(--space-sm)' }}>
+                <button onClick={() => router.push('/login')} className="btn-secondary" style={{ flex: 1 }}>
+                  SIGN IN
+                </button>
+                <button onClick={() => router.push('/register')} className="btn-primary" style={{ flex: 1 }}>
+                  <span>REGISTER NOW</span>
+                </button>
+              </div>
             </div>
           </div>
         ) : (
