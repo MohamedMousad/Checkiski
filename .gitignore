@@ -69,6 +69,13 @@ ui_designs/
 *.jpeg
 *.svg
 
+# But allow website assets that must be deployed
+!Checkiski.Client/public/favicon.svg
+!Checkiski.Client/public/images/**
+!Checkiski.Client/public/pieces/**
+!Checkiski.Client/public/chess-pattern.png
+!Checkiski.Client/src/app/icon.svg
+
 # Agent Skills and Scratch
 .agents/
 skills-lock.json
