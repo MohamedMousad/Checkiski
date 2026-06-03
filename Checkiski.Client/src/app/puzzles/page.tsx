@@ -87,10 +87,8 @@ export default function PuzzlesPage() {
       </div>
 
       {/* Puzzle container */}
-      <div className="glass-panel" style={{
-        padding: 'var(--space-xl)',
-        animation: 'fadeInUp 0.6s var(--ease-out) forwards',
-        maxWidth: '700px',
+      <div style={{
+        animation: 'fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
         width: '100%',
       }}>
         <div style={{ textAlign: 'center', marginBottom: 'var(--space-lg)' }}>

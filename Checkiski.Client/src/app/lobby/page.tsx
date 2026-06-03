@@ -67,24 +67,48 @@ export default function LobbyPage() {
           <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
       ) : error ? (
-        <div className="glass-panel" style={{
-          padding: 'var(--space-4xl)',
-          textAlign: 'center',
-          animation: 'fadeInUp 0.6s var(--ease-out) forwards',
-          borderColor: 'rgba(231, 76, 60, 0.2)',
-          background: 'rgba(231, 76, 60, 0.05)'
-        }}>
-          <div style={{ fontSize: '3rem', marginBottom: 'var(--space-md)', opacity: 0.8, color: 'var(--color-danger)' }}>⚠️</div>
-          <h2 className="text-heading" style={{ fontSize: '1.3rem', marginBottom: 'var(--space-sm)' }}>
-            Connection Lost
-          </h2>
-          <p className="text-body" style={{ marginBottom: 'var(--space-lg)' }}>
-            {error}
-          </p>
-          <button onClick={() => loadGames()} className="btn-secondary" style={{ padding: '12px 28px' }}>
-            Retry Connection {retryCount > 1 ? `(Attempt ${retryCount})` : ''}
-          </button>
-        </div>
+        error.includes('401') ? (
+          <div className="glass-panel" style={{
+            padding: 'var(--space-4xl)',
+            textAlign: 'center',
+            animation: 'fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+          }}>
+            <div style={{ fontSize: '3rem', marginBottom: 'var(--space-md)', opacity: 0.9 }}>♟️</div>
+            <h2 className="text-heading" style={{ fontSize: '1.5rem', marginBottom: 'var(--space-sm)' }}>
+              Exclusive Access Required
+            </h2>
+            <p className="text-body" style={{ marginBottom: 'var(--space-xl)', color: 'var(--text-muted)' }}>
+              The Global Arena is reserved for registered masters. Sign in or establish your legacy to enter.
+            </p>
+            <div style={{ display: 'flex', gap: 'var(--space-md)', justifyContent: 'center' }}>
+              <button onClick={() => router.push('/login')} className="btn-secondary" style={{ padding: '12px 28px' }}>
+                SIGN IN
+              </button>
+              <button onClick={() => router.push('/register')} className="btn-primary" style={{ padding: '12px 28px' }}>
+                <span>REGISTER NOW</span>
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="glass-panel" style={{
+            padding: 'var(--space-4xl)',
+            textAlign: 'center',
+            animation: 'fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+            borderColor: 'rgba(231, 76, 60, 0.2)',
+            background: 'rgba(231, 76, 60, 0.05)'
+          }}>
+            <div style={{ fontSize: '3rem', marginBottom: 'var(--space-md)', opacity: 0.8, color: 'var(--color-danger)' }}>⚠️</div>
+            <h2 className="text-heading" style={{ fontSize: '1.3rem', marginBottom: 'var(--space-sm)' }}>
+              Connection Lost
+            </h2>
+            <p className="text-body" style={{ marginBottom: 'var(--space-lg)' }}>
+              {error}
+            </p>
+            <button onClick={() => loadGames()} className="btn-secondary" style={{ padding: '12px 28px' }}>
+              Retry Connection {retryCount > 1 ? `(Attempt ${retryCount})` : ''}
+            </button>
+          </div>
+        )
       ) : games.length === 0 ? (
         <div className="glass-panel" style={{
           padding: 'var(--space-3xl)',

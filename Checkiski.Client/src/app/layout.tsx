@@ -18,12 +18,6 @@ const playfair = Playfair_Display({
 export const metadata = {
   title: "Checkiski | Premium Multiplayer Chess",
   description: "Experience the next evolution of online chess. Real-time multiplayer, AI analysis, and tactical training.",
-  icons: {
-    icon: [
-      { url: '/favicon.svg', type: 'image/svg+xml' },
-    ],
-    apple: '/apple-touch-icon.png',
-  },
 };
 
 import Navbar from "../components/Navbar";
@@ -39,7 +33,6 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${outfit.variable} ${playfair.variable}`} suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </head>
       <body>
