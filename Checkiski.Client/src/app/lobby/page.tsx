@@ -43,26 +43,27 @@ export default function LobbyPage() {
       position: 'relative',
     }}>
       {/* Header */}
-      <div style={{ textAlign: 'center', marginBottom: 'var(--space-3xl)' }}>
-        <p className="text-caption" style={{ color: 'var(--color-emerald-dim)', marginBottom: 'var(--space-sm)' }}>
-          Live Arena
+      <div style={{ textAlign: 'center', marginBottom: 'var(--space-4xl)', position: 'relative' }}>
+        <p className="text-caption" style={{ color: 'var(--accent-lime)', marginBottom: 'var(--space-sm)' }}>
+          [ GLOBAL ARENA ]
         </p>
-        <h1 className="text-hero" style={{ fontSize: 'clamp(2rem, 5vw, 3rem)' }}>
+        <h1 className="text-hero" style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)' }}>
           Game Lobby
         </h1>
         <p className="text-body" style={{ marginTop: 'var(--space-md)', maxWidth: '500px', margin: 'var(--space-md) auto 0' }}>
-          Watch live games or jump into the action
+          Connect instantly. Watch grandmasters clash or jump into the fray yourself.
         </p>
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 'var(--space-3xl)', color: 'var(--color-text-dim)' }}>
+        <div style={{ textAlign: 'center', padding: 'var(--space-3xl)', color: 'var(--text-dim)' }}>
           <div style={{
-            width: '40px', height: '40px', border: '3px solid var(--color-muted)',
-            borderTop: '3px solid var(--color-emerald)', borderRadius: '50%',
-            animation: 'spin 1s linear infinite', margin: '0 auto var(--space-md)',
+            width: '50px', height: '50px', border: '2px solid rgba(255,255,255,0.05)',
+            borderTop: '2px solid var(--accent-lime)', borderRadius: '50%',
+            animation: 'spin 1s cubic-bezier(0.68, -0.55, 0.26, 1.55) infinite', margin: '0 auto var(--space-md)',
+            boxShadow: '0 0 20px rgba(217, 248, 69, 0.2)'
           }} />
-            Loading games...
+            <div className="text-caption" style={{ color: 'var(--accent-lime)', marginTop: '15px' }}>SCANNING SERVERS...</div>
           <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
       ) : error ? (
@@ -111,36 +112,31 @@ export default function LobbyPage() {
             <div
               key={game.id}
               className="glass-panel glass-panel-interactive"
-              style={{
-                padding: 'var(--space-xl)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 'var(--space-md)',
-                animation: `fadeInUp 0.6s var(--ease-out) ${i * 0.08}s forwards`,
-                opacity: 0,
-                cursor: 'pointer',
-              }}
-              onClick={() => router.push(`/play?gameId=${game.id}`)}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span className="text-mono" style={{ fontWeight: 'bold', color: 'var(--color-text)', fontSize: '0.9rem' }}>
-                  #{game.id.substring(0, 8)}
-                </span>
-                <span style={{
-                  fontSize: '0.7rem',
-                  fontFamily: 'var(--font-display)',
-                  fontWeight: 600,
-                  letterSpacing: '0.08em',
-                  background: 'var(--color-emerald-deep)',
-                  color: 'var(--color-emerald)',
-                  padding: '4px 10px',
-                  borderRadius: 'var(--radius-full)',
-                  textTransform: 'uppercase',
-                  boxShadow: '0 0 10px rgba(46,204,113,0.2)',
-                }}>
-                  ● Live
-                </span>
-              </div>
+                style={{
+                  padding: 'var(--space-xl)', display: 'flex', flexDirection: 'column', gap: 'var(--space-md)',
+                  animation: `fadeInUp 0.6s var(--ease-out) ${i * 0.08}s forwards`, opacity: 0, cursor: 'pointer',
+                  position: 'relative', overflow: 'hidden'
+                }}
+                onClick={() => router.push(`/play?gameId=${game.id}`)}
+                onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px) scale(1.02)'; e.currentTarget.style.borderColor = 'var(--accent-lime)' }}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0) scale(1)'; e.currentTarget.style.borderColor = 'var(--glass-border)' }}
+              >
+                <div style={{ position: 'absolute', top: 0, left: '-100%', width: '100%', height: '2px', background: 'linear-gradient(90deg, transparent, var(--accent-lime), transparent)', animation: 'scanline 2s linear infinite' }} />
+                
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span className="text-mono" style={{ fontWeight: 'bold', color: 'var(--text-primary)', fontSize: '0.9rem' }}>
+                    #{game.id.substring(0, 8)}
+                  </span>
+                  <span style={{
+                    fontSize: '0.7rem', fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '0.08em',
+                    background: 'rgba(217, 248, 69, 0.1)', color: 'var(--accent-lime)',
+                    padding: '4px 10px', borderRadius: 'var(--radius-full)', textTransform: 'uppercase',
+                    boxShadow: '0 0 10px rgba(217, 248, 69, 0.2)', display: 'flex', alignItems: 'center', gap: '6px'
+                  }}>
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-lime)', animation: 'pulse 1.5s infinite' }}></span>
+                    Live
+                  </span>
+                </div>
               <p className="text-body" style={{ margin: 0, fontSize: '0.85rem' }}>
                 Status: {game.status}
               </p>

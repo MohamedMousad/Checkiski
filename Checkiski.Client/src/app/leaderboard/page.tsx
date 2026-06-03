@@ -63,13 +63,18 @@ export default function LeaderboardPage() {
             style={{
               padding: '0.5rem 1.5rem',
               borderRadius: '20px',
-              background: category === cat ? 'var(--color-emerald)' : 'var(--panel-bg)',
-              color: category === cat ? '#fff' : 'var(--color-text-dim)',
+              background: category === cat ? 'var(--accent-lime)' : 'var(--glass-bg)',
+              color: category === cat ? 'var(--bg-deep)' : 'var(--text-muted)',
               cursor: 'pointer',
-              fontWeight: 600,
+              fontWeight: category === cat ? 800 : 600,
+              fontFamily: 'var(--font-display)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
               transition: 'all 0.2s ease',
-              border: '1px solid ' + (category === cat ? 'var(--color-emerald)' : 'var(--panel-border)')
+              border: '1px solid ' + (category === cat ? 'var(--accent-lime)' : 'var(--glass-border)')
             }}
+            onMouseEnter={(e) => { if (category !== cat) e.currentTarget.style.color = 'var(--text-primary)' }}
+            onMouseLeave={(e) => { if (category !== cat) e.currentTarget.style.color = 'var(--text-muted)' }}
           >
             {cat}
           </button>

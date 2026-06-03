@@ -67,15 +67,15 @@ export default function PuzzlesPage() {
       padding: 'calc(80px + var(--space-2xl)) var(--space-xl) var(--space-2xl)',
     }}>
       {/* Header */}
-      <div style={{ textAlign: 'center', marginBottom: 'var(--space-3xl)' }}>
-        <p className="text-caption" style={{ color: 'var(--color-gold-dim)', marginBottom: 'var(--space-sm)' }}>
-          Train Your Vision
+      <div style={{ textAlign: 'center', marginBottom: 'var(--space-3xl)', position: 'relative' }}>
+        <p className="text-caption" style={{ color: 'var(--accent-lime)', marginBottom: 'var(--space-sm)', letterSpacing: '0.1em' }}>
+          [ TACTICAL ANALYSIS ]
         </p>
-        <h1 className="text-hero" style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', marginBottom: 'var(--space-md)' }}>
-          Tactical Puzzles
+        <h1 className="text-hero" style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', marginBottom: 'var(--space-md)' }}>
+          Training Facility
         </h1>
-        <p className="text-body" style={{ maxWidth: '440px', margin: '0 auto' }}>
-          Puzzle {currentPuzzleIndex + 1} of {PUZZLES.length}
+        <p className="text-body" style={{ maxWidth: '440px', margin: '0 auto', color: 'var(--text-muted)' }}>
+          Simulation {currentPuzzleIndex + 1} of {PUZZLES.length}
         </p>
       </div>
 
@@ -87,10 +87,11 @@ export default function PuzzlesPage() {
         width: '100%',
       }}>
         <div style={{ textAlign: 'center', marginBottom: 'var(--space-lg)' }}>
-          <h2 className="text-heading" style={{ fontSize: '1.2rem', marginBottom: 'var(--space-xs)' }}>
+          <h2 className="text-heading" style={{ fontSize: '1.2rem', marginBottom: 'var(--space-xs)', color: 'var(--text-primary)' }}>
             {currentPuzzle.title}
           </h2>
-          <p className="text-caption" style={{ color: 'var(--color-emerald-dim)' }}>
+          <p className="text-caption" style={{ color: 'var(--accent-lime)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-lime)', boxShadow: '0 0 10px var(--accent-lime)' }}></span>
             {currentPuzzle.description}
           </p>
         </div>
