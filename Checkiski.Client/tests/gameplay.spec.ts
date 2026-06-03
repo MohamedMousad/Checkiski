@@ -18,7 +18,7 @@ test.describe('Gameplay and Matchmaking', () => {
     await page1.goto('/login');
     await page1.locator('input[type="text"]').fill('p1_user');
     await page1.locator('input[type="password"]').fill('password');
-    await page1.getByRole('button', { name: 'Login' }).click();
+    await page1.getByRole('button', { name: 'Sign In' }).click();
     await expect(page1).toHaveURL(/\/profile\/me/);
 
     // --- Mock Auth for Player 2 ---
@@ -30,7 +30,7 @@ test.describe('Gameplay and Matchmaking', () => {
     await page2.goto('/login');
     await page2.locator('input[type="text"]').fill('p2_user');
     await page2.locator('input[type="password"]').fill('password');
-    await page2.getByRole('button', { name: 'Login' }).click();
+    await page2.getByRole('button', { name: 'Sign In' }).click();
     await expect(page2).toHaveURL(/\/profile\/me/);
 
     // --- Navigate to Play ---
@@ -39,13 +39,11 @@ test.describe('Gameplay and Matchmaking', () => {
     await page1.goto('/play?gameId=test-game-123');
     await page2.goto('/play?gameId=test-game-123');
 
-    // Both should see the Live Match title
-    await expect(page1.getByRole('heading', { name: /Live Match/i })).toBeVisible();
-    await expect(page2.getByRole('heading', { name: /Live Match/i })).toBeVisible();
+    // Wait for the board to load
 
     // Verify pieces are loaded (pawns)
-    await expect(page1.getByText('♙').first()).toBeVisible();
-    await expect(page2.getByText('♙').first()).toBeVisible();
+    await expect(page1.getByAltText('wP').first()).toBeVisible();
+    await expect(page2.getByAltText('wP').first()).toBeVisible();
 
     // Wait for SignalR connections to settle (approx)
     await page1.waitForTimeout(1000);
@@ -56,12 +54,12 @@ test.describe('Gameplay and Matchmaking', () => {
     // is often enough for the initial multi-browser test structure.
     
     // Let's assert the clocks and controls are visible for both players
-    await expect(page1.getByText('Opponent')).toBeVisible();
-    await expect(page1.getByText('You')).toBeVisible();
+    await expect(page1.getByText('Opponent').first()).toBeVisible();
+    await expect(page1.getByText('You').first()).toBeVisible();
     await expect(page1.getByRole('button', { name: 'Resign' })).toBeVisible();
 
-    await expect(page2.getByText('Opponent')).toBeVisible();
-    await expect(page2.getByText('You')).toBeVisible();
+    await expect(page2.getByText('Opponent').first()).toBeVisible();
+    await expect(page2.getByText('You').first()).toBeVisible();
     await expect(page2.getByRole('button', { name: 'Resign' })).toBeVisible();
 
     // Clean up

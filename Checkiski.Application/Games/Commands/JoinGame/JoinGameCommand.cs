@@ -16,10 +16,12 @@ namespace Checkiski.Application.Games.Commands.JoinGame
     public class JoinGameCommandHandler : IRequestHandler<JoinGameCommand, bool>
     {
         private readonly IAppDbContext _context;
+        private readonly IGameNotifier _notifier;
 
-        public JoinGameCommandHandler(IAppDbContext context)
+        public JoinGameCommandHandler(IAppDbContext context, IGameNotifier notifier)
         {
             _context = context;
+            _notifier = notifier;
         }
 
         public async Task<bool> Handle(JoinGameCommand request, CancellationToken cancellationToken)
@@ -39,6 +41,21 @@ namespace Checkiski.Application.Games.Commands.JoinGame
             if (game.WhitePlayerId == joinPlayer.Id || game.BlackPlayerId == joinPlayer.Id)
                 return false; // Prevent self-join
 
+            if (game.Status != Checkiski.Domain.Entities.GameStatus.WaitingForOpponent)
+                return false;
+
+            var existingWaitingGames = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(_context.Games.Where(
+                g => (g.WhitePlayerId == joinPlayer.Id || g.BlackPlayerId == joinPlayer.Id) 
+                  && g.Status == Checkiski.Domain.Entities.GameStatus.WaitingForOpponent
+                  && g.Id != game.Id), 
+                cancellationToken);
+
+            foreach (var waitingGame in existingWaitingGames)
+            {
+                waitingGame.Status = Checkiski.Domain.Entities.GameStatus.Aborted;
+                waitingGame.EndedAt = DateTime.UtcNow;
+            }
+
             if (game.WhitePlayerId == null)
             {
                 game.WhitePlayer = joinPlayer;
@@ -49,8 +66,20 @@ namespace Checkiski.Application.Games.Commands.JoinGame
                 game.BlackPlayer = joinPlayer;
                 game.BlackPlayerId = joinPlayer.Id;
             }
+
+            if (game.WhitePlayerId != null && game.BlackPlayerId != null)
+            {
+                game.Status = Checkiski.Domain.Entities.GameStatus.InProgress;
+                game.StartedAt = DateTime.UtcNow;
+                game.LastMoveAt = DateTime.UtcNow;
+            }
             
             await _context.SaveChangesAsync(cancellationToken);
+            
+            if (game.Status == Checkiski.Domain.Entities.GameStatus.InProgress)
+            {
+                await _notifier.PlayerJoinedAsync(game.Id);
+            }
             return true;
         }
     }

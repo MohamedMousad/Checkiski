@@ -23,6 +23,8 @@ obj/
 *.log
 *.sqlite3
 *.db
+appsettings.json
+appsettings.*.json
 
 # macOS
 .DS_Store
@@ -76,7 +78,6 @@ download_impeccable.py
 *.ps1
 
 # CI/CD
-.github/
 
 # Flutter Mobile App
 Checkiski.Mobile/build/
@@ -100,3 +101,15 @@ Checkiski.Mobile/ios/ServiceDefinitions.json
 Checkiski.Mobile/ios/Runner/GeneratedPluginRegistrant.*
 Checkiski.Mobile/macos/Flutter/GeneratedPluginRegistrant.swift
 Checkiski.Mobile/macos/Flutter/ephemeral/
+
+/publish
+/out
+
+# Testing and Local Artifacts
+test_publish/
+playwright-report/
+test-results/
+blob-report/
+
+out_test/
+out/

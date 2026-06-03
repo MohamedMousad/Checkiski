@@ -4,12 +4,11 @@ import React from 'react';
 interface GameControlsProps {
   onResign: () => void;
   onDraw: () => void;
-  onAbort: () => void;
   onFlipBoard: () => void;
   onInvite?: () => void;
 }
 
-export default function GameControls({ onResign, onDraw, onAbort, onFlipBoard, onInvite }: GameControlsProps) {
+export default function GameControls({ onResign, onDraw, onFlipBoard, onInvite }: GameControlsProps) {
   const buttonBase: React.CSSProperties = {
     padding: '10px 14px',
     borderRadius: 'var(--radius-sm)',
@@ -72,14 +71,6 @@ export default function GameControls({ onResign, onDraw, onAbort, onFlipBoard, o
         onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.color = 'var(--color-text-dim)'; }}
       >
         🤝 Draw
-      </button>
-      <button
-        style={buttonBase}
-        onClick={onAbort}
-        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'var(--color-text)'; }}
-        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.color = 'var(--color-text-dim)'; }}
-      >
-        ❌ Abort
       </button>
       <button
         style={{ ...buttonBase, color: 'var(--color-emerald-dim)' }}

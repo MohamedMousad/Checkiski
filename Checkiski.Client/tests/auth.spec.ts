@@ -10,7 +10,7 @@ test.describe('Authentication Flow', () => {
     await page.goto('/register');
     
     // Check if on register page
-    await expect(page.getByRole('heading', { name: 'Register for Checkiski' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Create Account' })).toBeVisible();
 
     // Fill form
     await page.locator('input[type="text"]').fill(testUsername);
@@ -32,13 +32,13 @@ test.describe('Authentication Flow', () => {
       });
     });
 
-    await page.getByRole('button', { name: 'Register' }).click();
+    await page.getByRole('button', { name: 'Create Account' }).click();
 
     // Should redirect to login
     await expect(page).toHaveURL(/\/login/);
 
     // 2. Login
-    await expect(page.getByRole('heading', { name: 'Login to Checkiski' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Sign In' })).toBeVisible();
 
     await page.locator('input[type="text"]').fill(testUsername);
     await page.locator('input[type="password"]').fill(testPassword);
@@ -69,7 +69,7 @@ test.describe('Authentication Flow', () => {
       });
     });
 
-    await page.getByRole('button', { name: 'Login' }).click();
+    await page.getByRole('button', { name: 'Sign In' }).click();
 
     // Should redirect to profile
     await expect(page).toHaveURL(/\/profile\/me/);
@@ -98,7 +98,7 @@ test.describe('Authentication Flow', () => {
       });
     });
 
-    await page.getByRole('button', { name: 'Login' }).click();
+    await page.getByRole('button', { name: 'Sign In' }).click();
 
     // Expect an error message on the page
     await expect(page.getByText('Invalid credentials')).toBeVisible();

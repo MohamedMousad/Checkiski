@@ -11,23 +11,68 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSignalR();
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(IAppDbContext).Assembly));
 
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
+}
+
+if (!string.IsNullOrWhiteSpace(connectionString) && connectionString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase))
+{
+    try 
+    {
+        var uri = new Uri(connectionString);
+        var userInfo = uri.UserInfo.Split(':');
+        var username = userInfo.Length > 0 ? userInfo[0] : "";
+        var password = userInfo.Length > 1 ? userInfo[1] : "";
+        var database = uri.AbsolutePath.TrimStart('/');
+        connectionString = $"Host={uri.Host};Port={uri.Port};Username={username};Password={password};Database={database};SslMode=Require;Trust Server Certificate=true;";
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("Failed to parse URI: " + ex.Message);
+    }
+}
+
+// Mutate the configuration so any auto-provisioning tools see the fixed string
+builder.Configuration["ConnectionStrings:DefaultConnection"] = connectionString;
+
+// Also mutate environment variables just in case
+if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("DATABASE_URL")))
+{
+    Environment.SetEnvironmentVariable("DATABASE_URL", connectionString);
+}
+if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")))
+{
+    Environment.SetEnvironmentVariable("ConnectionStrings__DefaultConnection", connectionString);
+}
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(connectionString));
 
 builder.Services.AddScoped<IAppDbContext>(provider => provider.GetRequiredService<AppDbContext>());
 builder.Services.AddScoped<IGameNotifier, Checkiski.WebApi.Services.GameNotifier>();
 builder.Services.AddScoped<IJwtService, Checkiski.WebApi.Services.JwtService>();
 
-var redisConnectionString = builder.Configuration.GetConnectionString("Redis") ?? "localhost";
-try
+var redisConnectionString = builder.Configuration.GetConnectionString("Redis");
+if (!string.IsNullOrWhiteSpace(redisConnectionString))
 {
-    builder.Services.AddSingleton<StackExchange.Redis.IConnectionMultiplexer>(StackExchange.Redis.ConnectionMultiplexer.Connect(redisConnectionString));
+    try
+    {
+        var redis = StackExchange.Redis.ConnectionMultiplexer.Connect(redisConnectionString);
+        builder.Services.AddSingleton<StackExchange.Redis.IConnectionMultiplexer>(redis);
+        Console.WriteLine("Redis connected successfully.");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Redis connection failed, running without Redis: {ex.Message}");
+    }
 }
-catch (Exception ex)
+else
 {
-    Console.WriteLine($"Redis connection failed: {ex.Message}");
+    Console.WriteLine("No Redis connection string configured, running without Redis.");
 }
-builder.Services.AddScoped<Checkiski.Application.Common.Interfaces.IMatchmakingService, Checkiski.Infrastructure.Services.RedisMatchmakingService>();
+builder.Services.AddScoped<Checkiski.Application.Common.Interfaces.IMatchmakingService, Checkiski.Infrastructure.Services.InMemoryMatchmakingService>();
 
 builder.Services.AddAuthentication(Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -77,11 +122,25 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-app.UseExceptionHandler("/error");
-app.Map("/error", (Microsoft.AspNetCore.Http.HttpContext context) =>
+using (var scope = app.Services.CreateScope())
 {
-    return Microsoft.AspNetCore.Http.Results.Problem("An unexpected error occurred.");
-});
+    try 
+    {
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        db.Database.Migrate();
+        Console.WriteLine("Database migration completed successfully.");
+
+        // Wait on the puzzle seeder to validate and seed the puzzles
+        await Checkiski.Infrastructure.Data.PuzzleSeeder.SeedPuzzlesAsync(db, @"D:\Checkiski\Checkiski.WebApi\stockfish.exe");
+        Console.WriteLine("Puzzle seeder completed.");
+    } 
+    catch (Exception ex) 
+    {
+        Console.WriteLine($"Database migration/seeding failed: {ex.Message}");
+    }
+}
+
+app.UseDeveloperExceptionPage();
 
 if (app.Environment.IsDevelopment())
 {

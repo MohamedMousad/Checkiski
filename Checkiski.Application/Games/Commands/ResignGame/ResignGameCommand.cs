@@ -36,9 +36,11 @@ namespace Checkiski.Application.Games.Commands.ResignGame
                 return false;
 
             game.EndedAt = DateTime.UtcNow;
+            
+            await Checkiski.Application.Common.Helpers.GameFinalizer.FinalizeGameAsync(_context, game, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);
 
-            await _notifier.GameEndedAsync(game.Id, game.Status);
+            await _notifier.GameEndedAsync(game.Id, game.Status, game.WhiteClockRemaining, game.BlackClockRemaining);
 
             return true;
         }

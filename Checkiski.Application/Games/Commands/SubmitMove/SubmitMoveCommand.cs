@@ -16,6 +16,9 @@ namespace Checkiski.Application.Games.Commands.SubmitMove
         public int ToX { get; set; }
         public int ToY { get; set; }
         public char? Promotion { get; set; }
+        public string San { get; set; } = string.Empty;
+        public string Fen { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
     }
 
     public class SubmitMoveCommandHandler : IRequestHandler<SubmitMoveCommand, bool>
@@ -48,21 +51,55 @@ namespace Checkiski.Application.Games.Commands.SubmitMove
             bool isValid = piece.Move(board, new Location(request.ToX, request.ToY), request.Promotion);
             if (!isValid) return false;
 
-            // Clocks management
-            // Very simplified: assuming 1 move = 1 second for now or no time deduction unless LastMoveAt is tracked
-            // Actually, we need a LastMoveAt. For now, since Game doesn't have LastMoveAt, we just assume some time passed.
-            // Let's add LastMoveAt to Game? I will do that via EF Migration.
-            // For now, let's just update FEN.
-            
+            // Clock synchronization
+            var now = DateTime.UtcNow;
+            if (game.LastMoveAt.HasValue)
+            {
+                var elapsed = now - game.LastMoveAt.Value;
+                if (isWhiteTurn)
+                {
+                    game.WhiteClockRemaining -= elapsed;
+                    if (game.WhiteClockRemaining.TotalSeconds < 0) game.WhiteClockRemaining = TimeSpan.Zero;
+                }
+                else
+                {
+                    game.BlackClockRemaining -= elapsed;
+                    if (game.BlackClockRemaining.TotalSeconds < 0) game.BlackClockRemaining = TimeSpan.Zero;
+                }
+            }
+            game.LastMoveAt = now;
+
+            // Implicitly decline any pending draw offers upon making a move
+            game.DrawOfferedByPlayerId = null;
+
+            // Update FEN and Turn from custom engine
             game.CurrentFen = board.ToFen();
             game.CurrentTurn = board.CurrentTurn;
             
-            string moveStr = $"{(char)('a' + request.FromX)}{request.FromY + 1}-{(char)('a' + request.ToX)}{request.ToY + 1}";
-            if (request.Promotion.HasValue) moveStr += $"={char.ToUpper(request.Promotion.Value)}";
-            game.MoveList.Add(moveStr);
-            game.Pgn = string.Join(" ", game.MoveList);
+            if (!string.IsNullOrEmpty(request.San))
+            {
+                game.MoveList.Add(request.San);
+            }
+            else
+            {
+                string moveStr = $"{(char)('a' + request.FromX)}{request.FromY + 1}-{(char)('a' + request.ToX)}{request.ToY + 1}";
+                if (request.Promotion.HasValue) moveStr += $"={char.ToUpper(request.Promotion.Value)}";
+                game.MoveList.Add(moveStr);
+            }
 
-            // Check for game end
+            // CRITICAL EF CORE FIX: Force EF Core to track the change to the list
+            game.MoveList = new System.Collections.Generic.List<string>(game.MoveList);
+            
+            // Generate valid PGN with move numbers
+            var pgnBuilder = new System.Text.StringBuilder();
+            for (int i = 0; i < game.MoveList.Count; i++)
+            {
+                if (i % 2 == 0) pgnBuilder.Append($"{(i / 2) + 1}. ");
+                pgnBuilder.Append(game.MoveList[i]).Append(" ");
+            }
+            game.Pgn = pgnBuilder.ToString().TrimEnd();
+
+            // Check for game end using backend engine
             King opponentKing = null!;
             for (int i = 0; i < 8; i++)
             {
@@ -84,12 +121,17 @@ namespace Checkiski.Application.Games.Commands.SubmitMove
                 game.EndedAt = DateTime.UtcNow;
             }
 
+            if (game.Status != Checkiski.Domain.Entities.GameStatus.InProgress)
+            {
+                await Checkiski.Application.Common.Helpers.GameFinalizer.FinalizeGameAsync(_context, game, cancellationToken);
+            }
+
             await _context.SaveChangesAsync(cancellationToken);
 
             await _notifier.MoveSubmittedAsync(game.Id, game.CurrentFen, game.Pgn, game.WhiteClockRemaining, game.BlackClockRemaining);
             if (game.Status != Checkiski.Domain.Entities.GameStatus.InProgress)
             {
-                await _notifier.GameEndedAsync(game.Id, game.Status);
+                await _notifier.GameEndedAsync(game.Id, game.Status, game.WhiteClockRemaining, game.BlackClockRemaining);
             }
 
             return true;

@@ -8,19 +8,32 @@ export default function LobbyPage() {
   const [games, setGames] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const router = useRouter();
 
-  useEffect(() => {
-    ApiService.get<any[]>('/api/game')
-      .then(data => {
-        setGames(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        setError(err.message || 'Unable to connect to the live arena.');
-        setLoading(false);
-      });
+  const loadGames = React.useCallback(async (showLoading = true) => {
+    if (showLoading) setLoading(true);
+    setError(null);
+    try {
+      const data = await ApiService.get<any[]>('/api/game');
+      setGames(Array.isArray(data) ? data : []);
+      setLastUpdated(new Date());
+      setRetryCount(0);
+    } catch (err: any) {
+      setError(err.message || 'Unable to connect to the live arena.');
+      setRetryCount(prev => prev + 1);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  // Initial load + auto-refresh every 15s
+  useEffect(() => {
+    loadGames();
+    const interval = setInterval(() => loadGames(false), 15000);
+    return () => clearInterval(interval);
+  }, [loadGames]);
 
   return (
     <div style={{
@@ -67,8 +80,8 @@ export default function LobbyPage() {
           <p className="text-body" style={{ marginBottom: 'var(--space-lg)' }}>
             {error}
           </p>
-          <button onClick={() => window.location.reload()} className="btn-secondary" style={{ padding: '12px 28px' }}>
-            Retry Connection
+          <button onClick={() => loadGames()} className="btn-secondary" style={{ padding: '12px 28px' }}>
+            Retry Connection {retryCount > 1 ? `(Attempt ${retryCount})` : ''}
           </button>
         </div>
       ) : games.length === 0 ? (

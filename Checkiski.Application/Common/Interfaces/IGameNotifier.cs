@@ -7,6 +7,8 @@ namespace Checkiski.Application.Common.Interfaces;
 public interface IGameNotifier
 {
     Task MoveSubmittedAsync(Guid gameId, string fen, string pgn, TimeSpan whiteClock, TimeSpan blackClock);
-    Task GameEndedAsync(Guid gameId, GameStatus status);
+    Task GameEndedAsync(Guid gameId, GameStatus status, TimeSpan whiteClock, TimeSpan blackClock);
     Task MatchFoundAsync(Guid player1Id, Guid player2Id, Guid gameId);
+    Task PlayerJoinedAsync(Guid gameId);
+    Task DrawOfferedAsync(Guid gameId, Guid offeredByPlayerId);
 }

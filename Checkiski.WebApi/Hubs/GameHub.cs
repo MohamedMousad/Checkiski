@@ -23,6 +23,11 @@ namespace Checkiski.Hubs
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, gameId);
         }
 
+        public async Task PlayerReady(string gameId, bool isReply)
+        {
+            await Clients.OthersInGroup(gameId).SendAsync("OpponentReady", isReply);
+        }
+
         public override async Task OnConnectedAsync()
         {
             var userId = Context.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;

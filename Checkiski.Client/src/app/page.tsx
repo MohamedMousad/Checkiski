@@ -11,6 +11,7 @@ gsap.registerPlugin(ScrollTrigger);
 export default function Home() {
   const [showCreator, setShowCreator] = useState(false);
   const [activeSlide, setActiveSlide] = useState(0);
+  const [stats, setStats] = useState({ totalGames: 847, totalPlayers: 312 });
   const router = useRouter();
   const heroRef = useRef<HTMLElement>(null);
   const heroTextRef = useRef<HTMLDivElement>(null);
@@ -30,6 +31,17 @@ export default function Home() {
       setActiveSlide(prev => (prev + 1) % heroSlides.length);
     }, 6000);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/stats`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && typeof data.totalGames === 'number') {
+          setStats({ totalGames: data.totalGames, totalPlayers: data.totalPlayers });
+        }
+      })
+      .catch(err => console.error("Failed to fetch stats", err));
   }, []);
 
   useEffect(() => {
@@ -188,8 +200,8 @@ export default function Home() {
         maxWidth: '1100px', margin: '-40px auto 0', position: 'relative', zIndex: 5,
       }}>
         {[
-          { val: '847', label: 'Matches Played', icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> },
-          { val: '312', label: 'Registered Players', icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> },
+          { val: stats.totalGames.toString(), label: 'Matches Played', icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> },
+          { val: stats.totalPlayers.toString(), label: 'Registered Players', icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> },
           { val: '5', label: 'Game Modes', icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> },
           { val: '< 80ms', label: 'Avg Response', icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> },
         ].map((s, i) => (

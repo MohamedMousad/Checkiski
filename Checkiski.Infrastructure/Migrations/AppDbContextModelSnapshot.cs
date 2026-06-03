@@ -17,7 +17,7 @@ namespace Checkiski.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.8")
+                .HasAnnotation("ProductVersion", "8.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -46,6 +46,9 @@ namespace Checkiski.Infrastructure.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<DateTime?>("EndedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("LastMoveAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("MoveList")

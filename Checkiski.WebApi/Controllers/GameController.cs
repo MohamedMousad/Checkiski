@@ -3,7 +3,6 @@ using Checkiski.Application.Games.Commands.JoinGame;
 using Checkiski.Application.Games.Commands.SubmitMove;
 using Checkiski.Application.Games.Commands.ResignGame;
 using Checkiski.Application.Games.Commands.OfferDraw;
-using Checkiski.Application.Games.Commands.AbortGame;
 using Checkiski.Application.Games.Queries.GetGame;
 using Checkiski.Application.Games.Queries.ListGames;
 using MediatR;
@@ -65,11 +64,11 @@ namespace Checkiski.WebApi.Controllers
             return Ok();
         }
 
-        [HttpPost("abort")]
-        public async Task<IActionResult> Abort([FromBody] AbortGameCommand command)
+        [HttpPost("timeout")]
+        public async Task<IActionResult> Timeout([FromBody] Checkiski.Application.Games.Commands.TimeoutGame.TimeoutGameCommand command)
         {
             var success = await _mediator.Send(command);
-            if (!success) return BadRequest("Could not abort game.");
+            if (!success) return BadRequest("Could not process timeout.");
             return Ok();
         }
 

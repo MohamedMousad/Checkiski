@@ -116,10 +116,17 @@ namespace Checkiski.WebApi.Controllers
             });
         }
 
-        [HttpGet("leaderboard")]
-        public async Task<IActionResult> GetLeaderboard()
+        [HttpGet("profile/{id}/history")]
+        public async Task<IActionResult> GetProfileHistory(System.Guid id)
         {
-            var leaderboard = await _mediator.Send(new Checkiski.Application.Players.Queries.GetLeaderboard.GetLeaderboardQuery());
+            var history = await _mediator.Send(new Checkiski.Application.Players.Queries.GetPlayerGameHistory.GetPlayerGameHistoryQuery { PlayerId = id });
+            return Ok(history);
+        }
+
+        [HttpGet("leaderboard")]
+        public async Task<IActionResult> GetLeaderboard([FromQuery] string? category)
+        {
+            var leaderboard = await _mediator.Send(new Checkiski.Application.Players.Queries.GetLeaderboard.GetLeaderboardQuery { Category = category });
             return Ok(leaderboard);
         }
     }

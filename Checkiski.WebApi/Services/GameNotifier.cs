@@ -27,9 +27,13 @@ namespace Checkiski.WebApi.Services
             });
         }
 
-        public async Task GameEndedAsync(Guid gameId, GameStatus status)
+        public async Task GameEndedAsync(Guid gameId, GameStatus status, TimeSpan whiteClock, TimeSpan blackClock)
         {
-            await _hubContext.Clients.Group(gameId.ToString()).SendAsync("GameEnded", new { Status = status.ToString() });
+            await _hubContext.Clients.Group(gameId.ToString()).SendAsync("GameEnded", new { 
+                Status = status.ToString(),
+                WhiteClock = whiteClock.TotalSeconds,
+                BlackClock = blackClock.TotalSeconds
+            });
         }
 
         public async Task MatchFoundAsync(System.Guid player1Id, System.Guid player2Id, System.Guid gameId)
@@ -38,6 +42,16 @@ namespace Checkiski.WebApi.Services
             // For now, broadcast to a player-specific group if they joined it, or just broadcast to everyone and let clients filter.
             await _hubContext.Clients.Group(player1Id.ToString()).SendAsync("MatchFound", gameId);
             await _hubContext.Clients.Group(player2Id.ToString()).SendAsync("MatchFound", gameId);
+        }
+
+        public async Task PlayerJoinedAsync(Guid gameId)
+        {
+            await _hubContext.Clients.Group(gameId.ToString()).SendAsync("PlayerJoined");
+        }
+
+        public async Task DrawOfferedAsync(Guid gameId, Guid offeredByPlayerId)
+        {
+            await _hubContext.Clients.Group(gameId.ToString()).SendAsync("DrawOffered", offeredByPlayerId.ToString());
         }
     }
 }
