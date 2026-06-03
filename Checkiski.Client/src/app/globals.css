@@ -249,6 +249,36 @@ a.btn-primary:hover { color: var(--bg-deep) !important; }
   border-color: var(--text-primary);
 }
 
+/* ── Form Inputs ───────────────────────────────────────────── */
+.input-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-xs);
+  text-transform: uppercase;
+}
+
+.input-field {
+  width: 100%;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.input-field:focus {
+  border-color: var(--accent-lime);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 0 15px var(--accent-lime-glow);
+}
+
 /* ── Glass Panel System ────────────────────────────────────── */
 .glass-panel {
   background: var(--glass-bg);

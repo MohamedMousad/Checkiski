@@ -94,9 +94,9 @@ export default function Home() {
         </div>
 
         {/* Hero Content - Grid Layout */}
-        <div style={{
+        <div className="hero-layout-grid" style={{
           position: 'relative', zIndex: 2, maxWidth: '1400px', width: '100%',
-          display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'center',
+          display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '4rem', alignItems: 'center',
           perspective: '1000px', marginTop: '60px'
         }}>
           
@@ -144,7 +144,7 @@ export default function Home() {
               Real-time multiplayer, engine analysis, and tactical puzzles wrapped in a cinematic experience.
             </p>
 
-            <div ref={ctaRef} style={{ display: 'flex', gap: '1.5rem', marginLeft: '1vw' }}>
+            <div className="hero-cta-group" style={{ display: 'flex', gap: '1.5rem', marginLeft: '1vw' }}>
               <button 
                 onClick={() => router.push('/play')}
                 className="btn-primary"
@@ -359,32 +359,31 @@ export default function Home() {
         @media (max-width: 1024px) {
           .hero-floating-card { display: none !important; }
           .hero-card-group {
-            transform: scale(0.8);
-            margin: 2rem auto;
-            max-width: 100% !important;
+            transform: scale(1) !important;
+            margin: 2rem auto !important;
+            max-width: 320px !important;
+            aspect-ratio: 4/5 !important;
           }
-          div[style*="gridTemplateColumns: '1fr 1fr'"] {
+          .hero-layout-grid {
             grid-template-columns: 1fr !important;
             text-align: center;
-          }
-          div[style*="justifyContent: 'center'"] > div.glass-panel {
-            max-width: 350px !important;
-            margin: 0 auto;
+            gap: 2rem !important;
           }
           h1 span { margin-left: 0 !important; }
-          p.text-body { margin: 0 auto 3rem !important; }
-          div[style*="display: 'flex'"][style*="gap: '1.5rem'"] {
+          p.text-body { margin: 0 auto 2rem !important; text-align: center !important; }
+          .hero-cta-group {
             justify-content: center; margin-left: 0 !important;
+            flex-wrap: wrap;
           }
           .feature-grid {
             grid-template-columns: 1fr !important;
-            text-align: left;
+            text-align: center !important;
           }
           .feature-grid > div {
             order: 0 !important;
           }
           .feature-grid p.text-body {
-            margin-left: 0 !important;
+            margin: 0 auto !important;
           }
         }
       `}</style>

@@ -13,7 +13,7 @@ export default function Profile() {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (!token) {
+    if (id === 'me' && !token) {
       router.push('/login');
       return;
     }
@@ -43,14 +43,14 @@ export default function Profile() {
     <div style={{
       textAlign: 'center',
       padding: 'calc(80px + var(--space-4xl)) var(--space-xl)',
-      color: 'var(--color-text-dim)',
+      color: 'var(--text-dim)',
     }}>
       <div style={{
-        width: '40px', height: '40px', border: '3px solid var(--color-muted)',
-        borderTop: '3px solid var(--color-emerald)', borderRadius: '50%',
-        animation: 'spin 1s linear infinite', margin: '0 auto var(--space-md)',
+        width: '40px', height: '40px', border: '3px solid rgba(255,255,255,0.05)',
+        borderTop: '3px solid var(--accent-lime)', borderRadius: '50%',
+        animation: 'spin 1s cubic-bezier(0.68, -0.55, 0.26, 1.55) infinite', margin: '0 auto var(--space-md)',
       }} />
-      Loading profile...
+      <div className="text-caption" style={{ color: 'var(--accent-lime)', marginTop: '15px' }}>ACCESSING RECORDS...</div>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
@@ -88,7 +88,7 @@ export default function Profile() {
             right: '-50px',
             width: '200px',
             height: '200px',
-            background: 'radial-gradient(circle, rgba(46,204,113,0.08) 0%, transparent 70%)',
+            background: 'radial-gradient(circle, rgba(217, 248, 69, 0.08) 0%, transparent 70%)',
             pointerEvents: 'none',
           }} />
 
@@ -98,16 +98,16 @@ export default function Profile() {
               width: '90px',
               height: '90px',
               borderRadius: '50%',
-              background: 'linear-gradient(135deg, var(--color-emerald-deep), var(--color-emerald-dim))',
+              background: 'linear-gradient(135deg, rgba(217, 248, 69, 0.1), rgba(217, 248, 69, 0.02))',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: '2.2rem',
               fontWeight: 'bold',
-              color: 'var(--color-emerald)',
+              color: 'var(--accent-lime)',
               overflow: 'hidden',
-              border: '2px solid var(--color-emerald-dim)',
-              boxShadow: '0 0 25px rgba(46,204,113,0.2)',
+              border: '2px solid var(--accent-lime-glow)',
+              boxShadow: '0 0 25px rgba(217, 248, 69, 0.2)',
               flexShrink: 0,
             }}>
               {profile?.profilePictureUrl ? (
@@ -118,11 +118,11 @@ export default function Profile() {
             </div>
 
             <div style={{ flex: 1, minWidth: '200px' }}>
-              <h1 className="text-display" style={{ fontSize: '1.8rem', marginBottom: 'var(--space-xs)' }}>
+              <h1 className="text-display" style={{ fontSize: '1.8rem', marginBottom: 'var(--space-xs)', color: 'var(--text-primary)' }}>
                 {profile?.username}
               </h1>
               {profile?.country && (
-                <p className="text-caption" style={{ color: 'var(--color-text-faint)', marginBottom: 'var(--space-sm)' }}>
+                <p className="text-caption" style={{ color: 'var(--text-muted)', marginBottom: 'var(--space-sm)' }}>
                   {profile.country}
                 </p>
               )}
@@ -130,7 +130,7 @@ export default function Profile() {
                 {profile?.bio || 'No bio provided.'}
               </p>
               <p style={{
-                color: 'var(--color-text-faint)',
+                color: 'var(--text-muted)',
                 fontSize: '0.8rem',
                 marginTop: 'var(--space-sm)',
                 fontFamily: 'var(--font-display)',
@@ -149,8 +149,8 @@ export default function Profile() {
 
         {/* Ratings Section */}
         <div style={{ marginBottom: 'var(--space-md)' }}>
-          <p className="text-caption" style={{ color: 'var(--color-emerald-dim)', marginBottom: 'var(--space-lg)' }}>
-            Elo Ratings
+          <p className="text-caption" style={{ color: 'var(--accent-lime)', marginBottom: 'var(--space-lg)' }}>
+            [ ELO RATINGS ]
           </p>
         </div>
 
@@ -171,13 +171,13 @@ export default function Profile() {
               }}
             >
               <div style={{ fontSize: '1.5rem', marginBottom: 'var(--space-sm)' }}>{icon}</div>
-              <div className="text-caption" style={{ color: 'var(--color-text-faint)', marginBottom: 'var(--space-sm)' }}>
+              <div className="text-caption" style={{ color: 'var(--text-muted)', marginBottom: 'var(--space-sm)' }}>
                 {type}
               </div>
               <div className="text-mono" style={{
                 fontSize: '1.5rem',
                 fontWeight: 'bold',
-                color: type === 'Overall' ? 'var(--color-emerald)' : 'var(--color-text)',
+                color: type === 'Overall' ? 'var(--accent-lime)' : 'var(--text-primary)',
               }}>
                 {rating || 1200}
               </div>
@@ -187,14 +187,14 @@ export default function Profile() {
 
         {/* Game History Section */}
         <div style={{ marginTop: 'var(--space-2xl)', marginBottom: 'var(--space-md)' }}>
-          <p className="text-caption" style={{ color: 'var(--color-emerald-dim)', marginBottom: 'var(--space-lg)' }}>
-            Recent Games
+          <p className="text-caption" style={{ color: 'var(--accent-lime)', marginBottom: 'var(--space-lg)' }}>
+            [ RECENT GAMES ]
           </p>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
           {history.length === 0 ? (
-            <div className="glass-panel" style={{ padding: 'var(--space-xl)', textAlign: 'center', color: 'var(--color-text-faint)' }}>
+            <div className="glass-panel" style={{ padding: 'var(--space-xl)', textAlign: 'center', color: 'var(--text-muted)' }}>
               No recent games played.
             </div>
           ) : (
@@ -207,7 +207,7 @@ export default function Profile() {
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                   animation: `fadeInUp 0.5s var(--ease-out) ${0.3 + i * 0.05}s forwards`,
                   opacity: 0,
-                  borderLeft: `4px solid ${g.outcome === 'Win' ? 'var(--color-emerald)' : g.outcome === 'Loss' ? '#ef4444' : '#f59e0b'}`,
+                  borderLeft: `4px solid ${g.outcome === 'Win' ? 'var(--accent-lime)' : g.outcome === 'Loss' ? '#ef4444' : '#f59e0b'}`,
                   cursor: 'pointer'
                 }}
                 onClick={() => router.push(`/play?gameId=${g.gameId}`)}
@@ -219,16 +219,16 @@ export default function Profile() {
                       backgroundColor: g.color === 'White' ? '#fff' : '#222',
                       border: '1px solid #555'
                     }} title={`Played as ${g.color}`} />
-                    <span className="text-body" style={{ fontWeight: 600 }}>vs {g.opponentName}</span>
+                    <span className="text-body" style={{ fontWeight: 600, color: 'var(--text-primary)' }}>vs {g.opponentName}</span>
                   </div>
-                  <span className="text-caption" style={{ color: 'var(--color-text-faint)' }}>
+                  <span className="text-caption" style={{ color: 'var(--text-muted)' }}>
                     {new Date(g.playedAt).toLocaleDateString()} • {g.gameCategory}
                   </span>
                 </div>
                 <div style={{ 
                   fontWeight: 'bold', 
                   fontSize: '1.1rem',
-                  color: g.outcome === 'Win' ? 'var(--color-emerald)' : g.outcome === 'Loss' ? '#ef4444' : '#f59e0b'
+                  color: g.outcome === 'Win' ? 'var(--accent-lime)' : g.outcome === 'Loss' ? '#ef4444' : '#f59e0b'
                 }}>
                   {g.outcome}
                 </div>

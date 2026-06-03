@@ -78,14 +78,14 @@ export default function Settings() {
     <div style={{
       textAlign: 'center',
       padding: 'calc(80px + var(--space-4xl)) var(--space-xl)',
-      color: 'var(--color-text-dim)',
+      color: 'var(--text-dim)',
     }}>
       <div style={{
-        width: '40px', height: '40px', border: '3px solid var(--color-muted)',
-        borderTop: '3px solid var(--color-emerald)', borderRadius: '50%',
-        animation: 'spin 1s linear infinite', margin: '0 auto var(--space-md)',
+        width: '40px', height: '40px', border: '3px solid rgba(255,255,255,0.05)',
+        borderTop: '3px solid var(--accent-lime)', borderRadius: '50%',
+        animation: 'spin 1s cubic-bezier(0.68, -0.55, 0.26, 1.55) infinite', margin: '0 auto var(--space-md)',
       }} />
-      Loading settings...
+      <div className="text-caption" style={{ color: 'var(--accent-lime)', marginTop: '15px' }}>ACCESSING RECORDS...</div>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
@@ -105,7 +105,7 @@ export default function Settings() {
         transform: 'translate(-50%, -50%)',
         width: '500px',
         height: '500px',
-        background: 'radial-gradient(circle, rgba(46,204,113,0.04) 0%, transparent 70%)',
+        background: 'radial-gradient(circle, rgba(217, 248, 69, 0.04) 0%, transparent 70%)',
         pointerEvents: 'none',
         filter: 'blur(60px)',
       }} />
@@ -119,10 +119,10 @@ export default function Settings() {
         animation: 'fadeInUp 0.6s var(--ease-out) forwards',
       }}>
         <div style={{ marginBottom: 'var(--space-2xl)' }}>
-          <p className="text-caption" style={{ color: 'var(--color-emerald-dim)', marginBottom: 'var(--space-xs)' }}>
-            Your Profile
+          <p className="text-caption" style={{ color: 'var(--accent-lime)', marginBottom: 'var(--space-xs)' }}>
+            [ IDENTITY PROFILE ]
           </p>
-          <h1 className="text-display" style={{ fontSize: '1.8rem' }}>Settings</h1>
+          <h1 className="text-display" style={{ fontSize: '1.8rem', color: 'var(--text-primary)' }}>Neural Link Settings</h1>
         </div>
         
         {error && (
