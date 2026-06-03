@@ -26,8 +26,11 @@ export default function Home() {
     setCreatingGame(true);
     try {
       const data = await ApiService.post<any>('/api/game', { hostUsername: username });
-      if (data && data.gameId) {
-        router.push(`/play?gameId=${data.gameId}`);
+      const gameId = typeof data === 'string' ? data : (data?.gameId || data?.GameId || data?.id || data?.Id);
+      if (gameId) {
+        router.push(`/play?gameId=${gameId}`);
+      } else {
+        throw new Error('No game ID received from server');
       }
     } catch (err: any) {
       console.error(err);
