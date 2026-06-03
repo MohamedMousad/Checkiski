@@ -60,10 +60,9 @@ export default function Register() {
         background: 'radial-gradient(circle at 70% 50%, rgba(217, 248, 69, 0.05) 0%, var(--bg-deep) 60%)',
       }} />
 
-      <div style={{
+      <div className="responsive-grid-2" style={{
         position: 'relative', zIndex: 2, maxWidth: '1400px', width: '100%',
-        display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'center',
-        perspective: '1000px',
+        alignItems: 'center', perspective: '1000px',
       }}>
         
         {/* Left Image Side */}

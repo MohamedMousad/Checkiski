@@ -59,13 +59,20 @@ export default function PuzzlesPage() {
   const currentPuzzle = PUZZLES[currentPuzzleIndex];
 
   return (
-    <main style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      minHeight: '100vh',
-      padding: 'calc(80px + var(--space-2xl)) var(--space-xl) var(--space-2xl)',
-    }}>
+    <main className="puzzle-page-container"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        minHeight: '100vh',
+      }}>
+      <style>{`
+        .puzzle-page-container { padding: calc(80px + var(--space-2xl)) var(--space-xl) var(--space-2xl); }
+        @media (max-width: 768px) {
+          .puzzle-page-container { padding: calc(80px + var(--space-md)) var(--space-sm) var(--space-md); }
+          .puzzle-page-container h1 { fontSize: 2rem !important; }
+        }
+      `}</style>
       {/* Header */}
       <div style={{ textAlign: 'center', marginBottom: 'var(--space-3xl)', position: 'relative' }}>
         <p className="text-caption" style={{ color: 'var(--accent-lime)', marginBottom: 'var(--space-sm)', letterSpacing: '0.1em' }}>

@@ -166,7 +166,7 @@ export default function Profile() {
               style={{
                 padding: 'var(--space-xl) var(--space-md)',
                 textAlign: 'center',
-                animation: `fadeInUp 0.5s var(--ease-out) ${0.1 + i * 0.08}s forwards`,
+                animation: `fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) ${0.1 + i * 0.08}s forwards`,
                 opacity: 0,
               }}
             >
@@ -205,7 +205,7 @@ export default function Profile() {
                 style={{ 
                   padding: 'var(--space-md) var(--space-xl)',
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  animation: `fadeInUp 0.5s var(--ease-out) ${0.3 + i * 0.05}s forwards`,
+                  animation: `fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) ${0.3 + i * 0.05}s forwards`,
                   opacity: 0,
                   borderLeft: `4px solid ${g.outcome === 'Win' ? 'var(--accent-lime)' : g.outcome === 'Loss' ? '#ef4444' : '#f59e0b'}`,
                   cursor: 'pointer'

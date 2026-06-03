@@ -20,7 +20,6 @@ export const metadata = {
   description: "Experience the next evolution of online chess. Real-time multiplayer, AI analysis, and tactical training.",
   icons: {
     icon: [
-      { url: '/favicon.ico' },
       { url: '/favicon.svg', type: 'image/svg+xml' },
     ],
     apple: '/apple-touch-icon.png',
@@ -40,7 +39,6 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${outfit.variable} ${playfair.variable}`} suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </head>

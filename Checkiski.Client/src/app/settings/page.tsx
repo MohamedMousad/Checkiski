@@ -116,7 +116,7 @@ export default function Settings() {
         padding: 'var(--space-2xl)',
         position: 'relative',
         zIndex: 1,
-        animation: 'fadeInUp 0.6s var(--ease-out) forwards',
+        animation: 'fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
       }}>
         <div style={{ marginBottom: 'var(--space-2xl)' }}>
           <p className="text-caption" style={{ color: 'var(--accent-lime)', marginBottom: 'var(--space-xs)' }}>
@@ -179,7 +179,7 @@ export default function Settings() {
               cursor: saving ? 'not-allowed' : 'pointer',
             }}
           >
-            {saving ? 'Saving...' : 'Save Changes'}
+            <span>{saving ? 'Saving...' : 'Save Changes'}</span>
           </button>
         </form>
       </div>
