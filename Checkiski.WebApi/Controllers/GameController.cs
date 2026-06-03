@@ -25,6 +25,13 @@ namespace Checkiski.WebApi.Controllers
             _mediator = mediator;
         }
 
+        [HttpGet("stats")]
+        public async Task<IActionResult> GetStats()
+        {
+            var stats = await _mediator.Send(new Checkiski.Application.Games.Queries.GetStats.GetStatsQuery());
+            return Ok(stats);
+        }
+
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromBody] CreateGameCommand command)
         {

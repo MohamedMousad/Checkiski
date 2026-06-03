@@ -78,23 +78,22 @@ export default function Settings() {
     <div style={{
       textAlign: 'center',
       padding: 'calc(80px + var(--space-4xl)) var(--space-xl)',
-      color: 'var(--color-text-dim)',
+      color: 'var(--text-dim)',
     }}>
       <div style={{
-        width: '40px', height: '40px', border: '3px solid var(--color-muted)',
-        borderTop: '3px solid var(--color-emerald)', borderRadius: '50%',
-        animation: 'spin 1s linear infinite', margin: '0 auto var(--space-md)',
+        width: '40px', height: '40px', border: '3px solid rgba(255,255,255,0.05)',
+        borderTop: '3px solid var(--accent-lime)', borderRadius: '50%',
+        animation: 'spin 1s cubic-bezier(0.68, -0.55, 0.26, 1.55) infinite', margin: '0 auto var(--space-md)',
       }} />
-      Loading settings...
+      <div className="text-caption" style={{ color: 'var(--accent-lime)', marginTop: '15px' }}>ACCESSING RECORDS...</div>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 
   return (
-    <div style={{
+    <div className="page-container" style={{
       display: 'flex',
       justifyContent: 'center',
-      padding: 'calc(80px + var(--space-2xl)) var(--space-xl) var(--space-2xl)',
       position: 'relative',
     }}>
       {/* Atmospheric glow */}
@@ -105,7 +104,7 @@ export default function Settings() {
         transform: 'translate(-50%, -50%)',
         width: '500px',
         height: '500px',
-        background: 'radial-gradient(circle, rgba(46,204,113,0.04) 0%, transparent 70%)',
+        background: 'radial-gradient(circle, rgba(217, 248, 69, 0.04) 0%, transparent 70%)',
         pointerEvents: 'none',
         filter: 'blur(60px)',
       }} />
@@ -116,13 +115,13 @@ export default function Settings() {
         padding: 'var(--space-2xl)',
         position: 'relative',
         zIndex: 1,
-        animation: 'fadeInUp 0.6s var(--ease-out) forwards',
+        animation: 'fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
       }}>
         <div style={{ marginBottom: 'var(--space-2xl)' }}>
-          <p className="text-caption" style={{ color: 'var(--color-emerald-dim)', marginBottom: 'var(--space-xs)' }}>
-            Your Profile
+          <p className="text-caption" style={{ color: 'var(--accent-lime)', marginBottom: 'var(--space-xs)' }}>
+            [ IDENTITY PROFILE ]
           </p>
-          <h1 className="text-display" style={{ fontSize: '1.8rem' }}>Settings</h1>
+          <h1 className="text-display" style={{ fontSize: '1.8rem', color: 'var(--text-primary)' }}>Neural Link Settings</h1>
         </div>
         
         {error && (
@@ -146,8 +145,57 @@ export default function Settings() {
           </div>
 
           <div>
-            <label className="input-label">Profile Picture URL</label>
-            <input type="text" name="profilePictureUrl" value={formData.profilePictureUrl} onChange={handleChange} className="input-field" placeholder="https://..." />
+            <label className="input-label">Profile Picture</label>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+              {formData.profilePictureUrl && (
+                <img 
+                  src={formData.profilePictureUrl} 
+                  alt="Profile" 
+                  style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--panel-border)' }} 
+                />
+              )}
+              <input 
+                type="file" 
+                accept="image/*"
+                onChange={async (e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    const file = e.target.files[0];
+                    setSaving(true);
+                    setError(null);
+                    try {
+                      const formDataPayload = new FormData();
+                      formDataPayload.append('file', file);
+                      const { ApiService } = await import('../../services/api');
+                      // Using fetch directly because ApiService.post might send JSON by default
+                      const token = localStorage.getItem('token');
+                      const response = await fetch(`${ApiService.baseUrl}/api/player/upload-profile-picture`, {
+                        method: 'POST',
+                        headers: {
+                          'Authorization': `Bearer ${token}`
+                        },
+                        body: formDataPayload
+                      });
+                      
+                      if (!response.ok) {
+                        const errText = await response.text();
+                        throw new Error(errText || 'Upload failed');
+                      }
+                      
+                      const data = await response.json();
+                      setFormData(prev => ({ ...prev, profilePictureUrl: data.url }));
+                    } catch (err: any) {
+                      console.error(err);
+                      setError(err.message || 'Error uploading image');
+                    } finally {
+                      setSaving(false);
+                    }
+                  }
+                }}
+                className="input-field" 
+                style={{ padding: '0.5rem' }}
+              />
+            </div>
+            <input type="hidden" name="profilePictureUrl" value={formData.profilePictureUrl} />
           </div>
 
           <div>
@@ -179,7 +227,7 @@ export default function Settings() {
               cursor: saving ? 'not-allowed' : 'pointer',
             }}
           >
-            {saving ? 'Saving...' : 'Save Changes'}
+            <span>{saving ? 'Saving...' : 'Save Changes'}</span>
           </button>
         </form>
       </div>

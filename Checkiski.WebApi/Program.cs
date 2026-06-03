@@ -73,6 +73,7 @@ else
     Console.WriteLine("No Redis connection string configured, running without Redis.");
 }
 builder.Services.AddScoped<Checkiski.Application.Common.Interfaces.IMatchmakingService, Checkiski.Infrastructure.Services.InMemoryMatchmakingService>();
+builder.Services.AddScoped<Checkiski.Application.Common.Interfaces.IImageUploadService, Checkiski.Infrastructure.Services.ImageUploadService>();
 
 builder.Services.AddAuthentication(Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

@@ -1,386 +1,401 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import GameCreator from '../components/GameCreator';
-
-gsap.registerPlugin(ScrollTrigger);
 
 export default function Home() {
-  const [showCreator, setShowCreator] = useState(false);
-  const [activeSlide, setActiveSlide] = useState(0);
-  const [stats, setStats] = useState({ totalGames: 847, totalPlayers: 312 });
   const router = useRouter();
-  const heroRef = useRef<HTMLElement>(null);
-  const heroTextRef = useRef<HTMLDivElement>(null);
-  const statsRef = useRef<HTMLElement>(null);
-  const featRef = useRef<HTMLElement>(null);
-  const ctaSectionRef = useRef<HTMLElement>(null);
-
-  const heroSlides = [
-    { src: '/images/hero-king.png', pos: 'center 30%' },
-    { src: '/images/chess-duel.png', pos: 'center 40%' },
-    { src: '/images/board-overhead.png', pos: 'center center' },
-  ];
-
-  // Auto-cycle hero backgrounds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveSlide(prev => (prev + 1) % heroSlides.length);
-    }, 6000);
-    return () => clearInterval(interval);
-  }, []);
+  const heroRef = useRef<HTMLDivElement>(null);
+  const title1Ref = useRef<HTMLSpanElement>(null);
+  const title2Ref = useRef<HTMLSpanElement>(null);
+  const title3Ref = useRef<HTMLSpanElement>(null);
+  const subtitleRef = useRef<HTMLParagraphElement>(null);
+  const ctaRef = useRef<HTMLDivElement>(null);
+  const [stats, setStats] = React.useState({ totalMatchesPlayed: 1420, activePlayers: 12 });
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/stats`)
-      .then(res => res.json())
-      .then(data => {
-        if (data && typeof data.totalGames === 'number') {
-          setStats({ totalGames: data.totalGames, totalPlayers: data.totalPlayers });
-        }
-      })
-      .catch(err => console.error("Failed to fetch stats", err));
-  }, []);
+    import('../services/api').then(({ ApiService }) => {
+      ApiService.get<any>('/api/game/stats')
+        .then(data => {
+          if (data) setStats(data);
+        })
+        .catch(err => console.error("Failed to load stats", err));
+    });
 
-  useEffect(() => {
-    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-    gsap.set(heroTextRef.current, { opacity: 0 });
-    tl.fromTo(heroTextRef.current, { y: 60, opacity: 0 }, { y: 0, opacity: 1, duration: 1.2 }, 0.5);
+    // Cinematic reveal animation
+    const tl = gsap.timeline({ defaults: { ease: 'power4.out' } });
 
-    if (statsRef.current) {
-      gsap.fromTo(statsRef.current.children, { y: 40, opacity: 0 },
-        { y: 0, opacity: 1, stagger: 0.12, duration: 0.8,
-          scrollTrigger: { trigger: statsRef.current, start: 'top 80%' } });
-    }
-    if (featRef.current) {
-      gsap.fromTo(featRef.current.querySelectorAll('.feat-card'), { y: 60, opacity: 0 },
-        { y: 0, opacity: 1, stagger: 0.15, duration: 0.9,
-          scrollTrigger: { trigger: featRef.current, start: 'top 75%' } });
-    }
-    if (ctaSectionRef.current) {
-      gsap.fromTo(ctaSectionRef.current, { y: 40, opacity: 0 },
-        { y: 0, opacity: 1, duration: 1,
-          scrollTrigger: { trigger: ctaSectionRef.current, start: 'top 85%' } });
-    }
-    return () => { ScrollTrigger.getAll().forEach(t => t.kill()); };
-  }, []);
+    tl.fromTo(title1Ref.current,
+      { y: 60, opacity: 0, rotateX: -30 },
+      { y: 0, opacity: 1, rotateX: 0, duration: 1.2, delay: 0.2 }
+    )
+    .fromTo(title2Ref.current,
+      { y: 60, opacity: 0, rotateX: -30 },
+      { y: 0, opacity: 1, rotateX: 0, duration: 1.2 },
+      "-=1.0"
+    )
+    .fromTo(title3Ref.current,
+      { y: 60, opacity: 0, rotateX: -30 },
+      { y: 0, opacity: 1, rotateX: 0, duration: 1.2 },
+      "-=1.0"
+    )
+    .fromTo(subtitleRef.current,
+      { y: 20, opacity: 0 },
+      { y: 0, opacity: 1, duration: 1 },
+      "-=0.8"
+    )
+    .fromTo(ctaRef.current,
+      { y: 20, opacity: 0 },
+      { y: 0, opacity: 1, duration: 1 },
+      "-=0.8"
+    );
 
-  const handleCreateGame = async (config: any) => {
-    setShowCreator(false);
-    let colorChoice = 2;
-    if (config.color === 'white') colorChoice = 1;
-    if (config.color === 'black') colorChoice = 0;
-    let tc = { baseMinutes: 3, incrementSeconds: 0 }, gc = 1;
-    if (config.timeControl === 'bullet') { tc = { baseMinutes: 1, incrementSeconds: 0 }; gc = 0; }
-    if (config.timeControl === 'rapid') { tc = { baseMinutes: 10, incrementSeconds: 0 }; gc = 2; }
-    if (config.timeControl === 'classical') { tc = { baseMinutes: 30, incrementSeconds: 0 }; gc = 3; }
-    try {
-      const username = localStorage.getItem('username');
-      if (!username) { router.push('/login'); return; }
-      const { ApiService } = await import('../services/api');
-      const data = await ApiService.post<{ gameId: string }>('/api/game/create', {
-        hostUsername: username, colorChoice, rated: config.isRated,
-        baseMinutes: tc.baseMinutes, incrementSeconds: tc.incrementSeconds, gameCategory: gc
+    // Parallax background effect
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!heroRef.current) return;
+      const x = (e.clientX / window.innerWidth - 0.5) * 20;
+      const y = (e.clientY / window.innerHeight - 0.5) * 20;
+      gsap.to(heroRef.current, {
+        x, y,
+        duration: 1,
+        ease: 'power2.out'
       });
-      router.push(`/play?gameId=${data.gameId}`);
-    } catch (err: any) { alert(`Failed: ${err.message}`); }
-  };
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
 
   return (
     <>
-      {/* Ken Burns slideshow keyframes */}
-      <style>{`
-        @keyframes kenBurns0 { 0% { transform: scale(1.05) translate(0,0); } 100% { transform: scale(1.15) translate(-2%,-1%); } }
-        @keyframes kenBurns1 { 0% { transform: scale(1.1) translate(-1%,0); } 100% { transform: scale(1.05) translate(1%,-2%); } }
-        @keyframes kenBurns2 { 0% { transform: scale(1.08) translate(1%,1%); } 100% { transform: scale(1.18) translate(-1%,0); } }
-      `}</style>
-
-      {/* ═══ HERO ═══ */}
-      <section ref={heroRef} style={{
-        position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center',
-        overflow: 'hidden', padding: '0',
+      <section style={{
+        position: 'relative', minHeight: '100vh', width: '100vw', display: 'flex', alignItems: 'center',
+        justifyContent: 'center', overflow: 'hidden', padding: '0 5vw',
       }}>
-        {/* Slideshow layers */}
-        {heroSlides.map((slide, i) => (
-          <div key={i} style={{
-            position: 'absolute', inset: '-20px', zIndex: 0,
-            backgroundImage: `url(${slide.src})`,
-            backgroundSize: 'cover', backgroundPosition: slide.pos,
-            opacity: activeSlide === i ? 1 : 0,
-            transition: 'opacity 1.5s ease-in-out',
-            animation: `kenBurns${i} 12s ease-in-out infinite alternate`,
-            willChange: 'transform, opacity',
-          }} />
-        ))}
-
-        {/* Overlays */}
-        <div style={{
-          position: 'absolute', inset: 0, zIndex: 1,
-          background: 'linear-gradient(to right, rgba(8,10,15,0.93) 0%, rgba(8,10,15,0.75) 45%, rgba(8,10,15,0.35) 100%)',
-        }} />
-        <div style={{
-          position: 'absolute', bottom: 0, left: 0, right: 0, height: '200px', zIndex: 1,
-          background: 'linear-gradient(to top, var(--color-void) 0%, transparent 100%)',
-        }} />
-
-        {/* Slide indicators */}
-        <div style={{
-          position: 'absolute', bottom: '32px', right: '40px', zIndex: 3,
-          display: 'flex', gap: '8px',
-        }}>
-          {heroSlides.map((_, i) => (
-            <button key={i} onClick={() => setActiveSlide(i)} style={{
-              width: activeSlide === i ? '32px' : '8px', height: '8px',
-              borderRadius: '4px', border: 'none', cursor: 'pointer',
-              background: activeSlide === i ? 'var(--color-emerald)' : 'rgba(255,255,255,0.25)',
-              transition: 'all 0.4s ease',
-            }} />
-          ))}
-        </div>
-
-        {/* Hero content */}
-        <div ref={heroTextRef} style={{
-          position: 'relative', zIndex: 2, maxWidth: '700px',
-          padding: '0 var(--space-3xl)', paddingTop: '120px',
-        }}>
-
-          <h1 style={{
-            fontSize: 'clamp(3rem, 7vw, 5.5rem)', fontFamily: 'var(--font-display)',
-            fontWeight: 800, lineHeight: 1.05, margin: '0 0 24px',
-            letterSpacing: '-0.03em',
-          }}>
-            <span style={{ color: '#fff' }}>Master the</span><br />
-            <span style={{
-              background: 'linear-gradient(135deg, var(--color-emerald), #a8edba)',
-              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-            }}>Art of Chess</span>
-          </h1>
-
-          <p style={{
-            fontSize: '1.15rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.7,
-            maxWidth: '520px', margin: '0 0 40px', fontWeight: 300,
-          }}>
-            Real-time multiplayer battles, AI-powered analysis, and tactical puzzles.
-            Experience chess like never before — cinematic, immersive, and competitive.
-          </p>
-
-          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-            <button onClick={() => setShowCreator(true)} style={{
-              padding: '16px 40px', fontSize: '1rem', fontWeight: 600,
-              fontFamily: 'var(--font-display)', letterSpacing: '0.05em',
-              background: 'var(--color-emerald)', color: '#000', border: 'none',
-              borderRadius: '8px', cursor: 'pointer',
-              boxShadow: '0 4px 20px rgba(46,204,113,0.4), 0 0 60px rgba(46,204,113,0.15)',
-              transition: 'transform 0.2s, box-shadow 0.2s',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 30px rgba(46,204,113,0.5)'; }}
-            onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(46,204,113,0.4)'; }}
-            >PLAY NOW</button>
-
-            <button onClick={() => router.push('/computer')} style={{
-              padding: '16px 40px', fontSize: '1rem', fontWeight: 600,
-              fontFamily: 'var(--font-display)', letterSpacing: '0.05em',
-              background: 'transparent', color: '#fff',
-              border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px',
-              cursor: 'pointer', transition: 'all 0.2s',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.5)'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.background = 'transparent'; }}
-            >VS COMPUTER</button>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ STATS BAR — Glassmorphism ═══ */}
-      <section ref={statsRef} style={{
-        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-        gap: '20px', padding: '60px var(--space-xl)',
-        maxWidth: '1100px', margin: '-40px auto 0', position: 'relative', zIndex: 5,
-      }}>
-        {[
-          { val: stats.totalGames.toString(), label: 'Matches Played', icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> },
-          { val: stats.totalPlayers.toString(), label: 'Registered Players', icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> },
-          { val: '5', label: 'Game Modes', icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> },
-          { val: '< 80ms', label: 'Avg Response', icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> },
-        ].map((s, i) => (
-          <div key={i} style={{
-            padding: '28px 24px', textAlign: 'center',
-            background: 'rgba(255,255,255,0.04)',
-            backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: '16px',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.06)',
-            transition: 'transform 0.3s, border-color 0.3s',
-            cursor: 'default',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.borderColor = 'rgba(46,204,113,0.2)'; }}
-          onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
-          >
-            <div style={{ color: 'var(--color-emerald-dim)', marginBottom: '12px', opacity: 0.7 }}>{s.icon}</div>
-            <div style={{
-              fontSize: '2.2rem', fontWeight: 800, fontFamily: 'var(--font-display)',
-              color: '#fff', marginBottom: '4px',
-              textShadow: '0 0 20px rgba(46,204,113,0.15)',
-            }}>{s.val}</div>
-            <div style={{
-              fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)',
-              fontFamily: 'var(--font-display)', letterSpacing: '0.12em', textTransform: 'uppercase',
-            }}>{s.label}</div>
-          </div>
-        ))}
-      </section>
-
-      {/* ═══ FEATURES ═══ */}
-      <section ref={featRef} style={{
-        padding: '120px var(--space-xl) 100px',
-        maxWidth: '1200px', margin: '0 auto',
-      }}>
-        <div style={{ textAlign: 'center', marginBottom: '72px' }}>
-          <span style={{
-            fontSize: '0.75rem', fontFamily: 'var(--font-display)', letterSpacing: '0.2em',
-            textTransform: 'uppercase', color: 'var(--color-emerald-dim)',
-          }}>WHY CHECKISKI</span>
-          <h2 style={{
-            fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 700,
-            fontFamily: 'var(--font-display)', margin: '16px 0 0',
-            color: '#fff',
-          }}>Built for Serious Players</h2>
-        </div>
-
-        <div style={{
-          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
-          gap: '24px',
-        }}>
-          {[
-            {
-              img: '/images/chess-duel.png',
-              title: 'Real-Time Multiplayer',
-              desc: 'Challenge players worldwide with WebSocket-powered live games. Sub-50ms latency for competitive play.',
-            },
-            {
-              img: '/images/board-overhead.png',
-              title: 'Engine Analysis',
-              desc: 'Stockfish running in your browser. Analyze any position, review your games move-by-move, find your mistakes.',
-            },
-            {
-              img: '/images/hero-king.png',
-              title: 'Tactical Training',
-              desc: 'Curated puzzles that sharpen your pattern recognition. Train like a grandmaster, think deeper.',
-            },
-          ].map((f, i) => (
-            <div key={i} className="feat-card" style={{
-              borderRadius: '16px', overflow: 'hidden',
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(255,255,255,0.06)',
-              transition: 'transform 0.3s, border-color 0.3s',
-              cursor: 'default',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.borderColor = 'rgba(46,204,113,0.2)'; }}
-            onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; }}
-            >
-              <div style={{
-                height: '200px', overflow: 'hidden', position: 'relative',
-              }}>
-                <img src={f.img} alt={f.title} style={{
-                  width: '100%', height: '100%', objectFit: 'cover',
-                  transition: 'transform 0.5s',
-                }} />
-                <div style={{
-                  position: 'absolute', inset: 0,
-                  background: 'linear-gradient(to top, rgba(8,10,15,1) 0%, transparent 60%)',
-                }} />
-              </div>
-              <div style={{ padding: '24px 28px 32px' }}>
-                <h3 style={{
-                  fontSize: '1.25rem', fontWeight: 700, fontFamily: 'var(--font-display)',
-                  color: '#fff', margin: '0 0 10px',
-                }}>{f.title}</h3>
-                <p style={{
-                  fontSize: '0.95rem', color: 'rgba(255,255,255,0.5)',
-                  lineHeight: 1.6, margin: 0,
-                }}>{f.desc}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ═══ VISUAL CTA SECTION ═══ */}
-      <section ref={ctaSectionRef} style={{
-        position: 'relative', padding: '120px var(--space-xl)',
-        overflow: 'hidden',
-      }}>
+        {/* Deep Atmospheric Background */}
         <div style={{
           position: 'absolute', inset: 0, zIndex: 0,
-          backgroundImage: 'url(/images/board-overhead.png)',
-          backgroundSize: 'cover', backgroundPosition: 'center',
-          filter: 'blur(3px)',
-        }}>
-          <div style={{
-            position: 'absolute', inset: 0,
-            background: 'rgba(8,10,15,0.85)',
-          }} />
+          background: 'radial-gradient(circle at 70% 50%, rgba(217, 248, 69, 0.05) 0%, var(--bg-deep) 60%)',
+        }} />
+        
+        {/* Subtle grid lines for that tech/creative agency vibe */}
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 0, opacity: 0.03, pointerEvents: 'none',
+          backgroundImage: 'linear-gradient(rgba(255,255,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)',
+          backgroundSize: '50px 50px',
+        }} />
+
+        {/* Abstract Floating Shapes (replaces the literal chess pieces for a more modern look) */}
+        <div ref={heroRef} style={{ position: 'absolute', inset: '-50px', zIndex: 0, pointerEvents: 'none' }}>
+           <div style={{
+             position: 'absolute', right: '10%', top: '20%',
+             width: '40vw', height: '40vw', borderRadius: '50%',
+             background: 'radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 70%)',
+             filter: 'blur(40px)',
+           }} />
+           <div style={{
+             position: 'absolute', left: '20%', bottom: '10%',
+             width: '30vw', height: '30vw', borderRadius: '50%',
+             background: 'radial-gradient(circle, rgba(217, 248, 69, 0.05) 0%, transparent 70%)',
+             filter: 'blur(60px)',
+           }} />
         </div>
 
-        <div style={{
-          position: 'relative', zIndex: 2, textAlign: 'center',
-          maxWidth: '600px', margin: '0 auto',
+        {/* Hero Content - Grid Layout */}
+        <div className="hero-layout-grid" style={{
+          position: 'relative', zIndex: 2, maxWidth: '1400px', width: '100%',
+          display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '4rem', alignItems: 'center',
+          perspective: '1000px', marginTop: '60px'
         }}>
-          <h2 style={{
-            fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: 800,
-            fontFamily: 'var(--font-display)', color: '#fff',
-            lineHeight: 1.1, margin: '0 0 20px',
-          }}>Ready to Play?</h2>
-          <p style={{
-            fontSize: '1.1rem', color: 'rgba(255,255,255,0.5)',
-            lineHeight: 1.6, margin: '0 0 40px',
-          }}>
-            Join the arena. Challenge real players or test your skill against the engine.
-          </p>
+          
+          {/* Left Text Side */}
+          <div>
+            <h1 style={{
+              margin: '0 0 2rem 0',
+              display: 'flex', flexDirection: 'column',
+            }}>
+              <span ref={title1Ref} className="text-hero" style={{ 
+                fontSize: 'clamp(4rem, 8vw, 8rem)', 
+                color: 'var(--text-faint)',
+                transformOrigin: 'left bottom'
+              }}>
+                Master
+              </span>
+              <span ref={title2Ref} className="text-script" style={{ 
+                fontSize: 'clamp(3rem, 6vw, 6rem)', 
+                marginTop: '-0.3em',
+                marginLeft: '1em',
+                color: 'var(--text-primary)',
+                zIndex: 2,
+                transformOrigin: 'left bottom'
+              }}>
+                the art of
+              </span>
+              <span ref={title3Ref} className="text-hero" style={{ 
+                fontSize: 'clamp(4.5rem, 10vw, 10rem)', 
+                marginTop: '-0.2em',
+                color: 'var(--accent-lime)',
+                textShadow: '0 0 80px rgba(217, 248, 69, 0.2)',
+                transformOrigin: 'left bottom'
+              }}>
+                Chess.
+              </span>
+            </h1>
 
-          <div style={{
-            display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap',
-          }}>
-            {[
-              { label: 'Play Online', path: null, primary: true },
-              { label: 'Lobby', path: '/lobby', primary: false },
-              { label: 'Puzzles', path: '/puzzles', primary: false },
-              { label: 'Leaderboard', path: '/leaderboard', primary: false },
-            ].map((btn, i) => (
-              <button key={i} onClick={() => btn.path ? router.push(btn.path) : setShowCreator(true)} style={{
-                padding: '14px 28px', fontSize: '0.9rem', fontWeight: 600,
-                fontFamily: 'var(--font-display)', letterSpacing: '0.04em',
-                background: btn.primary ? 'var(--color-emerald)' : 'rgba(255,255,255,0.08)',
-                color: btn.primary ? '#000' : '#fff',
-                border: btn.primary ? 'none' : '1px solid rgba(255,255,255,0.1)',
-                borderRadius: '8px', cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
-              onMouseEnter={e => { if (!btn.primary) e.currentTarget.style.background = 'rgba(255,255,255,0.14)'; }}
-              onMouseLeave={e => { if (!btn.primary) e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; }}
-              >{btn.label}</button>
-            ))}
+            <p ref={subtitleRef} className="text-body" style={{
+              fontSize: 'clamp(1rem, 1.2vw, 1.15rem)',
+              maxWidth: '500px',
+              marginLeft: '1vw',
+              marginBottom: '3rem',
+              color: 'var(--text-secondary)'
+            }}>
+              Real-time multiplayer, engine analysis, and tactical puzzles wrapped in a cinematic experience.
+            </p>
+
+            <div className="hero-cta-group" style={{ display: 'flex', gap: '1.5rem', marginLeft: '1vw' }}>
+              <button 
+                onClick={() => router.push('/play')}
+                className="btn-primary"
+              >
+                <span>Play Now</span>
+              </button>
+              <button 
+                onClick={() => router.push('/computer')}
+                className="btn-secondary"
+              >
+                Play Engine
+              </button>
+            </div>
+          </div>
+
+          {/* Right Image Side - Creative Agency Style */}
+          <div style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
+            {/* Ambient background glow */}
+            <div style={{
+              position: 'absolute', inset: '-10%',
+              background: 'radial-gradient(circle, rgba(217, 248, 69, 0.15) 0%, transparent 70%)',
+              filter: 'blur(60px)', zIndex: 0
+            }} />
+            
+            <div className="hero-card-group" style={{
+              position: 'relative', width: '100%', maxWidth: '550px', aspectRatio: '1/1',
+              perspective: '2000px', transformStyle: 'preserve-3d', display: 'flex', justifyContent: 'center', alignItems: 'center',
+            }}>
+              {/* Back Card - Rook */}
+              <div className="hero-card hero-card-3 glass-panel">
+                <img src="/images/hero-card-2.png" alt="Cinematic Chess Rook" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 40%, transparent 60%, rgba(217, 248, 69, 0.05) 100%)' }} />
+              </div>
+              
+              {/* Middle Card - Queen */}
+              <div className="hero-card hero-card-2 glass-panel">
+                <img src="/images/hero-card-1.png" alt="Cinematic Chess Queen" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 40%, transparent 60%, rgba(217, 248, 69, 0.05) 100%)' }} />
+              </div>
+
+              {/* Front Card - Knight */}
+              <div className="hero-card hero-card-1 glass-panel">
+                <img src="/images/cinematic-hero.png" alt="Cinematic Chess Knight" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 40%, transparent 60%, rgba(217, 248, 69, 0.05) 100%)' }} />
+              </div>
+            </div>
+            
+            {/* Floating UI Card 1 - Player Stats */}
+            <div className="hero-floating-card glass-panel" style={{
+              position: 'absolute', bottom: '15%', left: '-20%', zIndex: 2,
+              padding: '1rem', width: '220px', display: 'flex', gap: '1rem', alignItems: 'center',
+              animation: 'float 7s ease-in-out infinite reverse',
+              cursor: 'pointer'
+            }}>
+              <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'url(/images/cinematic-multiplayer.png) center/cover', border: '1px solid var(--accent-lime)' }} />
+              <div>
+                <div className="text-caption" style={{ color: 'var(--text-primary)', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-lime)', boxShadow: '0 0 8px var(--accent-lime)' }}></span>
+                  Magnus C.
+                </div>
+                <div className="text-mono" style={{ color: 'var(--accent-lime)', fontSize: '0.8rem', fontWeight: 800 }}>2882 ELO</div>
+              </div>
+            </div>
+
+            {/* Floating UI Card 2 - Engine Analysis */}
+            <div className="hero-floating-card glass-panel" style={{
+              position: 'absolute', top: '25%', right: '-15%', zIndex: 2,
+              padding: '1rem', width: '180px',
+              animation: 'float 5s ease-in-out infinite 1s',
+              cursor: 'pointer'
+            }}>
+              <div className="text-caption" style={{ color: 'var(--text-muted)', marginBottom: '8px' }}>Stockfish Eval</div>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px' }}>
+                <span className="text-display" style={{ fontSize: '2rem', color: 'var(--text-primary)', lineHeight: 1 }}>+2.4</span>
+                <span style={{ color: 'var(--accent-lime)', fontSize: '1.2rem', marginBottom: '4px' }}>↑</span>
+              </div>
+              <div style={{ width: '100%', height: '2px', background: 'var(--border)', marginTop: '10px' }}>
+                <div style={{ width: '70%', height: '100%', background: 'var(--accent-lime)', boxShadow: '0 0 10px var(--accent-lime)' }} />
+              </div>
+            </div>
+
+            {/* Decorative technical markers */}
+            <div className="hero-floating-card" style={{ position: 'absolute', top: '10%', left: '-5%', fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--accent-lime)', opacity: 0.5 }}>[ CHS-01 ]</div>
+            <div className="hero-floating-card" style={{ position: 'absolute', bottom: '10%', right: '-5%', fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--text-secondary)', opacity: 0.5 }}>LAT 42.8N</div>
+          </div>
+        </div>
+
+        {/* Scroll Indicator */}
+        <div style={{
+          position: 'absolute', bottom: '40px', left: '5vw', zIndex: 2,
+          display: 'flex', alignItems: 'center', gap: '15px'
+        }}>
+          <span className="text-caption">Scroll</span>
+          <div style={{ width: '60px', height: '1px', background: 'var(--border-strong)' }}>
+            <div style={{ 
+              width: '15px', height: '1px', background: 'var(--accent-lime)',
+              animation: 'scrollLine 2s ease-in-out infinite' 
+            }} />
           </div>
         </div>
       </section>
 
-      {/* ═══ FOOTER ═══ */}
-      <footer style={{
-        padding: '40px var(--space-xl)', textAlign: 'center',
-        borderTop: '1px solid rgba(255,255,255,0.05)',
-      }}>
-        <p style={{
-          fontSize: '0.8rem', color: 'rgba(255,255,255,0.25)',
-          fontFamily: 'var(--font-display)', letterSpacing: '0.15em',
-          textTransform: 'uppercase', margin: 0,
-        }}>© 2026 Checkiski — The Art of Strategy</p>
-      </footer>
+      {/* Stats Section */}
+      <section style={{ padding: 'var(--space-3xl) 5vw', background: 'var(--bg-deep)', borderTop: '1px solid var(--glass-border)', borderBottom: '1px solid var(--glass-border)' }}>
+        <div style={{ maxWidth: '1400px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '2rem' }}>
+          <div>
+            <div className="text-hero" style={{ fontSize: 'clamp(2.5rem, 4vw, 4rem)', color: 'var(--accent-lime)' }}>{stats.totalMatchesPlayed}+</div>
+            <div className="text-caption" style={{ color: 'var(--text-secondary)' }}>Matches Played</div>
+          </div>
+          <div>
+            <div className="text-hero" style={{ fontSize: 'clamp(2.5rem, 4vw, 4rem)', color: 'var(--text-primary)' }}>{stats.activePlayers}+</div>
+            <div className="text-caption" style={{ color: 'var(--text-secondary)' }}>Active Masters</div>
+          </div>
+          <div>
+            <div className="text-hero" style={{ fontSize: 'clamp(2.5rem, 4vw, 4rem)', color: 'var(--text-primary)' }}>&lt;45ms</div>
+            <div className="text-caption" style={{ color: 'var(--text-secondary)' }}>Server Latency</div>
+          </div>
+          <div>
+            <div className="text-hero" style={{ fontSize: 'clamp(2.5rem, 4vw, 4rem)', color: 'var(--text-primary)' }}>100%</div>
+            <div className="text-caption" style={{ color: 'var(--text-secondary)' }}>Fair Play Protected</div>
+          </div>
+        </div>
+      </section>
 
-      {showCreator && (
-        <GameCreator onCreate={handleCreateGame} onClose={() => setShowCreator(false)} />
-      )}
+      {/* Visual Features Section */}
+      <section style={{ padding: 'var(--space-4xl) 5vw', background: 'var(--bg-surface)' }}>
+        <div style={{ maxWidth: '1400px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '8rem' }}>
+          
+          {/* Feature 1: Engine */}
+          <div className="feature-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'center' }}>
+            <div className="glass-panel" style={{ position: 'relative', aspectRatio: '16/9', overflow: 'hidden' }}>
+              <img src="/images/cinematic-engine.png" alt="Engine Analysis" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            </div>
+            <div>
+              <div className="text-caption" style={{ color: 'var(--accent-lime)', marginBottom: '1rem' }}>NEURAL EVALUATION</div>
+              <h2 className="text-display" style={{ fontSize: 'clamp(2rem, 3vw, 3.5rem)', marginBottom: '1.5rem' }}>Stockfish 16 Engine Integration.</h2>
+              <p className="text-body" style={{ fontSize: '1.1rem', maxWidth: '500px' }}>
+                Analyze your games with the world's most powerful open-source chess engine right in your browser. Holographic evaluation bars and instant blunder detection elevate your learning curve.
+              </p>
+            </div>
+          </div>
+
+          {/* Feature 2: Multiplayer */}
+          <div className="feature-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'center' }}>
+            <div style={{ order: 1 }}>
+              <div className="text-caption" style={{ color: 'var(--accent-lime)', marginBottom: '1rem' }}>GLOBAL ARENA</div>
+              <h2 className="text-display" style={{ fontSize: 'clamp(2rem, 3vw, 3.5rem)', marginBottom: '1.5rem' }}>Zero-Latency Matchmaking.</h2>
+              <p className="text-body" style={{ fontSize: '1.1rem', maxWidth: '500px' }}>
+                Connect globally instantly. Our custom WebSockets infrastructure ensures lightning-fast move broadcasting and an unbreakable connection when it matters most.
+              </p>
+            </div>
+            <div className="glass-panel" style={{ position: 'relative', aspectRatio: '16/9', overflow: 'hidden', order: 2 }}>
+              <img src="/images/cinematic-multiplayer.png" alt="Multiplayer Arena" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <style>{`
+        @keyframes scrollLine {
+          0% { transform: translateX(0); opacity: 1; }
+          50% { transform: translateX(45px); opacity: 0; }
+          51% { transform: translateX(0); opacity: 0; }
+          100% { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0) rotate(0deg); }
+          50% { transform: translateY(-15px) rotate(1deg); }
+        }
+
+        /* 3D Hero Cards Interaction */
+        .hero-card {
+          position: absolute;
+          width: 55%;
+          aspect-ratio: 4/5;
+          transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+          box-shadow: -20px 20px 50px rgba(0,0,0,0.8), inset 0 0 0 1px rgba(255,255,255,0.1);
+          border-radius: 8px;
+          overflow: hidden;
+          background: var(--bg-deep);
+          pointer-events: none;
+        }
+        .hero-card-3 {
+          z-index: 1;
+          transform: rotateX(50deg) rotateZ(-35deg) translateZ(-80px) translate(-15%, -15%);
+          filter: brightness(0.4);
+        }
+        .hero-card-2 {
+          z-index: 2;
+          transform: rotateX(50deg) rotateZ(-35deg) translateZ(-20px) translate(-5%, -5%);
+          filter: brightness(0.65);
+        }
+        .hero-card-1 {
+          z-index: 3;
+          transform: rotateX(50deg) rotateZ(-35deg) translateZ(40px) translate(5%, 5%);
+          filter: brightness(0.9);
+        }
+
+        .hero-card-group:hover .hero-card-3 {
+          transform: rotateX(50deg) rotateZ(-35deg) translateZ(-100px) translate(-40%, -40%);
+          filter: brightness(0.7);
+        }
+        .hero-card-group:hover .hero-card-2 {
+          transform: rotateX(50deg) rotateZ(-35deg) translateZ(-20px) translate(-15%, -15%);
+          filter: brightness(0.9);
+        }
+        .hero-card-group:hover .hero-card-1 {
+          transform: rotateX(50deg) rotateZ(-35deg) translateZ(80px) translate(10%, 10%);
+          filter: brightness(1.1);
+        }
+        @media (max-width: 1024px) {
+          .hero-floating-card { display: none !important; }
+          .hero-card-group {
+            transform: scale(1) !important;
+            margin: 2rem auto !important;
+            max-width: 320px !important;
+            aspect-ratio: 4/5 !important;
+          }
+          .hero-layout-grid {
+            grid-template-columns: 1fr !important;
+            text-align: center;
+            gap: 2rem !important;
+          }
+          h1 span { margin-left: 0 !important; }
+          p.text-body { margin: 0 auto 2rem !important; text-align: center !important; }
+          .hero-cta-group {
+            justify-content: center; margin-left: 0 !important;
+            flex-wrap: wrap;
+          }
+          .feature-grid {
+            grid-template-columns: 1fr !important;
+            text-align: center !important;
+          }
+          .feature-grid > div {
+            order: 0 !important;
+          }
+          .feature-grid p.text-body {
+            margin: 0 auto !important;
+          }
+        }
+      `}</style>
     </>
   );
 }

@@ -103,32 +103,29 @@ export default function PuzzleBoard({ fen, solution, onNext }: { fen: string, so
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem' }}>
-      <div style={{ textAlign: 'center' }}>
-        <h2 style={{ marginBottom: '0.5rem' }}>Tactics Puzzle</h2>
-        {status === 'playing' && <div style={{ color: 'var(--accent-secondary)' }}>Find the best move!</div>}
-        {status === 'success' && (
-          <div>
-            <div style={{ color: '#4caf50', fontWeight: 'bold', marginBottom: '0.5rem' }}>Puzzle Solved!</div>
-            {onNext && <button className="btn-primary" onClick={onNext} style={{ padding: '8px 16px', fontSize: '0.9rem' }}>Next Puzzle →</button>}
-          </div>
-        )}
-        {status === 'failed' && <div style={{ color: '#ff4444', fontWeight: 'bold' }}>Incorrect move. Try again!</div>}
-      </div>
-
-      <div className="glass-panel" style={{ padding: '2rem', width: '100%', maxWidth: '560px' }}>
-        <div style={{ width: '100%' }}>
-          <PremiumBoard
-            game={game}
-            isFlipped={false}
-            selectedSquare={selectedSquare}
-            legalMoves={legalMoves}
-            onSquareClick={handleSquareClick}
-            onDragStart={onDragStart}
-            onDrop={onDrop}
-            canDrag={() => status === 'playing'}
-          />
+    <div className="chess-layout">
+      <div className="chess-board-container">
+        <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+          {status === 'playing' && <div style={{ color: 'var(--text-secondary)' }}>Find the best move!</div>}
+          {status === 'success' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'center' }}>
+              <div style={{ color: 'var(--accent-lime)', fontWeight: 'bold' }}>Puzzle Solved!</div>
+              {onNext && <button className="btn-primary" onClick={onNext} style={{ padding: '8px 16px', fontSize: '0.9rem' }}><span>Next Puzzle →</span></button>}
+            </div>
+          )}
+          {status === 'failed' && <div style={{ color: 'var(--accent-red)', fontWeight: 'bold' }}>Incorrect move. Try again!</div>}
         </div>
+
+        <PremiumBoard
+          game={game}
+          isFlipped={false}
+          selectedSquare={selectedSquare}
+          legalMoves={legalMoves}
+          onSquareClick={handleSquareClick}
+          onDragStart={onDragStart}
+          onDrop={onDrop}
+          canDrag={() => status === 'playing'}
+        />
       </div>
     </div>
   );

@@ -13,6 +13,7 @@ import GameControls from './GameControls';
 import ChatBox from './ChatBox';
 import GameAnalysis from './GameAnalysis';
 import PremiumBoard from './PremiumBoard';
+import InviteModal from './InviteModal';
 
 const pieceUnicode: Record<string, string> = {
   'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 'p': '♟',
@@ -47,6 +48,8 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
   const [connection, setConnection] = useState<HubConnection | null>(null);
   const [isFlipped, setIsFlipped] = useState(false);
   const [gameOverMsg, setGameOverMsg] = useState<string | null>(null);
+  const [isGameFinished, setIsGameFinished] = useState(false);
+  const [showInvite, setShowInvite] = useState(false);
   const [drawOfferReceived, setDrawOfferReceived] = useState(false);
 
   const { evaluation, bestMove, analyzeFen, isReady } = useStockfish();
@@ -85,6 +88,7 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
       }
       if (data.status && data.status !== 'InProgress' && data.status !== 'WaitingForOpponent') {
         setGameOverMsg(`Game Over: ${data.status}`);
+        setIsGameFinished(true);
       }
       if (data.pgn) {
         setGame(prev => {
@@ -173,6 +177,7 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
           connection.on("GameEnded", (data) => {
             const status = data.status || data.Status;
             setGameOverMsg(`Game Over: ${status}`);
+            setIsGameFinished(true);
             if (data.whiteClock !== undefined || data.WhiteClock !== undefined) {
                setWhiteClock(parseTs(data.whiteClock || data.WhiteClock));
                setBlackClock(parseTs(data.blackClock || data.BlackClock));
@@ -314,7 +319,7 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
     
   const viewGame = useMemo(() => new Chess(currentFen), [currentFen]);
 
-  const handleNav = (dir: 'start'|'prev'|'next'|'end') => {
+  const handleNav = React.useCallback((dir: 'start'|'prev'|'next'|'end') => {
     const total = historyMoves.length;
     let newIdx = reviewIndex === -1 ? total : reviewIndex;
     
@@ -324,7 +329,23 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
     if (dir === 'end') newIdx = total;
     
     setReviewIndex(newIdx === total ? -1 : newIdx);
-  };
+  }, [historyMoves.length, reviewIndex]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        handleNav('prev');
+      } else if (e.key === 'ArrowRight') {
+        handleNav('next');
+      } else if (e.key === 'ArrowUp') {
+        handleNav('start');
+      } else if (e.key === 'ArrowDown') {
+        handleNav('end');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleNav]);
 
   const renderRows = isFlipped ? [7,6,5,4,3,2,1,0] : [0,1,2,3,4,5,6,7];
   const renderCols = isFlipped ? [7,6,5,4,3,2,1,0] : [0,1,2,3,4,5,6,7];
@@ -344,7 +365,7 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
       {/* Center Column: Clocks & Board */}
       <div className="chess-board-container">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-          <GameClock timeRemaining={isFlipped ? whiteClock : blackClock} isActive={roomSynced && !gameOverMsg && game.turn() === (isFlipped ? 'w' : 'b')} onTimeout={handleTimeout} />
+          <GameClock timeRemaining={isFlipped ? whiteClock : blackClock} isActive={isGameActive && game.turn() === (isFlipped ? 'w' : 'b')} onTimeout={handleTimeout} />
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
              {isReviewMode && (
                 <span style={{ background: 'var(--accent-primary)', color: '#fff', padding: '2px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold' }}>
@@ -390,7 +411,7 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>
-          <GameClock timeRemaining={isFlipped ? blackClock : whiteClock} isActive={roomSynced && !gameOverMsg && game.turn() === (isFlipped ? 'b' : 'w')} onTimeout={handleTimeout} />
+          <GameClock timeRemaining={isFlipped ? blackClock : whiteClock} isActive={roomSynced && !gameOverMsg && status === 'InProgress' && game.turn() === (isFlipped ? 'b' : 'w')} onTimeout={handleTimeout} />
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
              {isReviewMode && (
                 <span style={{ padding: '0.5rem', fontWeight: 'bold', color: 'var(--accent-primary)' }}>
@@ -408,7 +429,7 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
       <div className="chess-sidebar">
         <MoveHistory 
           moves={game.history()} 
-          interactive={game.isGameOver() || !!gameOverMsg} 
+          interactive={game.isGameOver() || !!gameOverMsg || isGameFinished} 
           selectedIndex={reviewIndex === -1 ? historyMoves.length - 1 : reviewIndex - 1} 
           onSelect={(idx) => setReviewIndex(idx + 1)}
           onNav={handleNav}
@@ -428,7 +449,12 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
                 .catch(console.error);
             }}
             onFlipBoard={() => setIsFlipped(f => !f)}
+            onInvite={() => setShowInvite(true)}
           />
+
+          {showInvite && (
+            <InviteModal gameId={gameId} onClose={() => setShowInvite(false)} />
+          )}
 
           {(game.isGameOver() || gameOverMsg) && (
              <div style={{ marginTop: 'auto' }}>

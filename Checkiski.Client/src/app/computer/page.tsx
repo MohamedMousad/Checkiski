@@ -1,49 +1,38 @@
+/* eslint-disable */
 'use client';
-import React, { Suspense } from 'react';
-import ComputerBoard from '../../components/ComputerBoard';
 
-function ComputerContent() {
-  return (
-    <div style={{
-      width: '100%',
-      padding: 'calc(70px + var(--space-lg)) var(--space-md) var(--space-xl)',
-    }}>
-      {/* Atmospheric header */}
-      <div style={{
-        textAlign: 'center',
-        marginBottom: 'var(--space-xl)',
-        position: 'relative',
-      }}>
-        <p className="text-caption" style={{ color: 'var(--color-emerald-dim)', marginBottom: 'var(--space-xs)' }}>
-          Man vs Machine
-        </p>
-        <h1 className="text-display" style={{ fontSize: '1.6rem' }}>
-          Play Computer
-        </h1>
-      </div>
-      <ComputerBoard />
-    </div>
-  );
-}
+import React from 'react';
+import ComputerBoard from '../../components/ComputerBoard';
 
 export default function ComputerPage() {
   return (
-    <Suspense fallback={
+    <div style={{
+      width: '100%',
+      paddingTop: 'calc(64px + var(--space-lg))',
+      paddingBottom: 'var(--space-2xl)',
+    }}>
+      {/* Header */}
       <div style={{
         textAlign: 'center',
-        padding: 'calc(80px + var(--space-4xl)) var(--space-xl)',
-        color: 'var(--color-text-dim)',
+        marginBottom: 'var(--space-xl)',
+        animation: 'fadeInUp 0.6s var(--ease-out) forwards',
       }}>
-        <div style={{
-          width: '40px', height: '40px', border: '3px solid var(--color-muted)',
-          borderTop: '3px solid var(--color-emerald)', borderRadius: '50%',
-          animation: 'spin 1s linear infinite', margin: '0 auto var(--space-md)',
-        }} />
-        Initializing Stockfish engine...
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        <div className="text-caption" style={{
+          color: 'var(--accent-lime)',
+          marginBottom: 'var(--space-sm)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+          letterSpacing: '0.1em'
+        }}>
+          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-lime)', animation: 'pulse 2s infinite' }}></span>
+          NEURAL ENGINE ACTIVE
+        </div>
+        <h1 className="text-hero" style={{
+          fontSize: 'clamp(2.5rem, 4vw, 3.5rem)',
+          color: 'var(--text-primary)',
+        }}>Stockfish 16</h1>
       </div>
-    }>
-      <ComputerContent />
-    </Suspense>
+
+      <ComputerBoard />
+    </div>
   );
 }

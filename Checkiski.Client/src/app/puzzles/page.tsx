@@ -59,38 +59,37 @@ export default function PuzzlesPage() {
   const currentPuzzle = PUZZLES[currentPuzzleIndex];
 
   return (
-    <main style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      minHeight: '100vh',
-      padding: 'calc(80px + var(--space-2xl)) var(--space-xl) var(--space-2xl)',
-    }}>
+    <main className="page-container"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        minHeight: '100vh',
+      }}>
       {/* Header */}
-      <div style={{ textAlign: 'center', marginBottom: 'var(--space-3xl)' }}>
-        <p className="text-caption" style={{ color: 'var(--color-gold-dim)', marginBottom: 'var(--space-sm)' }}>
-          Train Your Vision
+      <div style={{ textAlign: 'center', marginBottom: 'var(--space-3xl)', position: 'relative' }}>
+        <p className="text-caption" style={{ color: 'var(--accent-lime)', marginBottom: 'var(--space-sm)', letterSpacing: '0.1em' }}>
+          [ TACTICAL ANALYSIS ]
         </p>
-        <h1 className="text-hero" style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', marginBottom: 'var(--space-md)' }}>
-          Tactical Puzzles
+        <h1 className="text-hero" style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', marginBottom: 'var(--space-md)' }}>
+          Training Facility
         </h1>
-        <p className="text-body" style={{ maxWidth: '440px', margin: '0 auto' }}>
-          Puzzle {currentPuzzleIndex + 1} of {PUZZLES.length}
+        <p className="text-body" style={{ maxWidth: '440px', margin: '0 auto', color: 'var(--text-muted)' }}>
+          Simulation {currentPuzzleIndex + 1} of {PUZZLES.length}
         </p>
       </div>
 
       {/* Puzzle container */}
-      <div className="glass-panel" style={{
-        padding: 'var(--space-xl)',
-        animation: 'fadeInUp 0.6s var(--ease-out) forwards',
-        maxWidth: '700px',
+      <div style={{
+        animation: 'fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
         width: '100%',
       }}>
         <div style={{ textAlign: 'center', marginBottom: 'var(--space-lg)' }}>
-          <h2 className="text-heading" style={{ fontSize: '1.2rem', marginBottom: 'var(--space-xs)' }}>
+          <h2 className="text-heading" style={{ fontSize: '1.2rem', marginBottom: 'var(--space-xs)', color: 'var(--text-primary)' }}>
             {currentPuzzle.title}
           </h2>
-          <p className="text-caption" style={{ color: 'var(--color-emerald-dim)' }}>
+          <p className="text-caption" style={{ color: 'var(--accent-lime)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-lime)', boxShadow: '0 0 10px var(--accent-lime)' }}></span>
             {currentPuzzle.description}
           </p>
         </div>

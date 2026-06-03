@@ -1,30 +1,34 @@
 import "./globals.css";
-import { Outfit, Inter } from 'next/font/google';
+import { Outfit, Playfair_Display } from 'next/font/google';
+import Script from 'next/script';
 
 const outfit = Outfit({
   subsets: ['latin'],
   variable: '--font-outfit',
   display: 'swap',
-  weight: ['300', '400', '500', '600', '700', '800', '900'],
 });
 
-const inter = Inter({
+const playfair = Playfair_Display({
   subsets: ['latin'],
-  variable: '--font-inter-local',
+  style: ['normal', 'italic'],
+  variable: '--font-playfair',
   display: 'swap',
-  weight: ['300', '400', '500', '600', '700'],
 });
 
 export const metadata = {
   title: "Checkiski | Premium Multiplayer Chess",
-  description: "Experience the next evolution of online chess. Real-time multiplayer, powered by a modern engine, wrapped in a cinematic interface.",
-  icons: { icon: '/favicon.ico' },
+  description: "Experience the next evolution of online chess. Real-time multiplayer, AI analysis, and tactical training.",
+  icons: {
+    icon: [
+      { url: '/favicon.svg?v=2', type: 'image/svg+xml' },
+      { url: '/icon.svg?v=2', type: 'image/svg+xml' },
+    ],
+  },
 };
 
 import Navbar from "../components/Navbar";
 import CursorGlow from "../components/CursorGlow";
 import PortalEntry from "../components/PortalEntry";
-
 import AtmosphereController from "../components/AtmosphereController";
 
 export default function RootLayout({
@@ -33,11 +37,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${outfit.variable} ${inter.variable}`}>
+    <html lang="en" className={`${outfit.variable} ${playfair.variable}`} suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/favicon.svg?v=2" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </head>
       <body>
+        <Script id="theme-cleanup" strategy="beforeInteractive">
+          {`
+            try {
+              const current = localStorage.getItem('checkiski-board-theme');
+              if (current === 'ivory-steel' || current === 'light-steel') {
+                localStorage.removeItem('checkiski-board-theme');
+              }
+            } catch(e) {}
+          `}
+        </Script>
         <PortalEntry />
         <AtmosphereController>
           <CursorGlow />

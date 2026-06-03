@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Chess, Square } from 'chess.js';
 import { BoardTheme, BOARD_THEMES, getThemeById, getSavedThemeId, saveThemeId } from '../lib/boardThemes';
 
@@ -22,7 +22,7 @@ interface PremiumBoardProps {
 
 const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 const RANKS = ['8', '7', '6', '5', '4', '3', '2', '1'];
-const SQ_SIZE = 64;
+const SQ_SIZE = 75;
 const BOARD_PX = SQ_SIZE * 8;
 
 const getSquare = (r: number, c: number) => (FILES[c] + RANKS[r]) as Square;
@@ -42,9 +42,33 @@ export default function PremiumBoard({
   canDrag,
   showThemeSelector = true,
 }: PremiumBoardProps) {
-  const [themeId, setThemeId] = useState(getSavedThemeId());
+  const [themeId, setThemeId] = useState('cinematic-obsidian');
   const [showPicker, setShowPicker] = useState(false);
+  const [eventText, setEventText] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
   const theme = getThemeById(themeId);
+
+  useEffect(() => {
+    setThemeId(getSavedThemeId());
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const hist = game.history({ verbose: true });
+    if (hist.length > 0) {
+      const lastMove = hist[hist.length - 1];
+      let txt = null;
+      if (game.isCheckmate()) txt = 'CHECKMATE';
+      else if (game.isCheck()) txt = 'CHECK';
+      else if (lastMove.flags.includes('c') || lastMove.flags.includes('e')) txt = 'CAPTURE';
+      
+      if (txt) {
+        setEventText(txt);
+        const timer = setTimeout(() => setEventText(null), 1200);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [game.history().length, game]);
 
   const handleThemeChange = useCallback((id: string) => {
     setThemeId(id);
@@ -71,16 +95,38 @@ export default function PremiumBoard({
   return (
     <div style={{ position: 'relative' }}>
       {/* Board Container with premium frame */}
-      <div style={{
+      <div 
+        className={game.inCheck() ? 'in-check-pulse' : ''}
+        style={{
         padding: '6px',
         background: theme.boardBg,
-        borderRadius: '6px',
+        borderRadius: '8px',
         boxShadow: theme.boardShadow,
         position: 'relative',
         display: 'block',
         width: '100%',
-        maxWidth: `${BOARD_PX + 12}px`,
+        overflow: 'hidden', // to contain the event text animation
       }}>
+        {/* Cinematic Event Flash */}
+        {eventText && (
+          <div style={{
+            position: 'absolute', inset: 0, zIndex: 100,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            pointerEvents: 'none',
+            background: 'radial-gradient(circle, rgba(0,0,0,0.4) 0%, transparent 60%)',
+            animation: 'flashOverlay 1.2s ease-out forwards',
+          }}>
+            <h2 className="text-hero" style={{
+              fontSize: 'clamp(2rem, 8vw, 5rem)',
+              color: eventText === 'CHECKMATE' || eventText === 'CHECK' ? 'var(--accent-red)' : 'var(--accent-lime)',
+              textShadow: '0 0 40px currentColor, 0 10px 20px rgba(0,0,0,0.8)',
+              animation: 'popText 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+            }}>
+              {eventText}
+            </h2>
+          </div>
+        )}
+
         <div style={{
           width: '100%',
           aspectRatio: '1 / 1',
@@ -119,6 +165,18 @@ export default function PremiumBoard({
                   <div style={{
                     position: 'absolute', inset: 0,
                     backgroundColor: theme.selectedSquare,
+                    boxShadow: `inset 0 0 0 2px ${theme.selectedBorder}`,
+                  }} />
+                )}
+
+                {/* Check indicator on king */}
+                {piece && piece.type === 'k' && game.isCheck() && piece.color === game.turn() && (
+                  <div style={{
+                    position: 'absolute', inset: 0,
+                    animation: 'checkPulse 1s ease-in-out infinite',
+                    borderRadius: '2px',
+                    zIndex: 5,
+                    pointerEvents: 'none',
                   }} />
                 )}
 
@@ -154,25 +212,27 @@ export default function PremiumBoard({
                   </span>
                 )}
 
-                {/* Valid move indicator - dot for empty, ring for capture */}
+                {/* Valid move indicator - solid dot for empty, solid ring for capture */}
                 {isLegal && !piece && (
                   <div style={{
                     position: 'absolute',
                     top: '50%', left: '50%',
                     transform: 'translate(-50%, -50%)',
-                    width: '30%',
-                    height: '30%',
+                    width: '28%',
+                    height: '28%',
                     borderRadius: '50%',
                     backgroundColor: theme.validMoveColor,
                     pointerEvents: 'none',
+                    boxShadow: '0 0 15px ' + theme.validMoveColor,
                   }} />
                 )}
                 {isLegal && piece && (
                   <div style={{
-                    position: 'absolute', inset: 0,
-                    borderRadius: '50%',
-                    background: `radial-gradient(transparent 51%, ${theme.validMoveCaptureColor} 51%)`,
+                    position: 'absolute', inset: '0',
+                    border: `4px solid ${theme.validMoveCaptureColor}`,
                     pointerEvents: 'none',
+                    backgroundColor: 'rgba(0,0,0,0.2)',
+                    boxShadow: 'inset 0 0 20px ' + theme.validMoveCaptureColor,
                   }} />
                 )}
               </div>
@@ -217,7 +277,9 @@ export default function PremiumBoard({
                     width: '90%',
                     height: '90%',
                     pointerEvents: 'none',
-                    filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))',
+                    filter: draggable ? 'drop-shadow(0 20px 30px rgba(0,0,0,0.8)) brightness(1.2)' : 'drop-shadow(0 6px 12px rgba(0,0,0,0.4))',
+                    transform: draggable ? 'scale(1.15)' : 'scale(1)',
+                    transition: 'filter 0.15s ease, transform 0.15s var(--ease-spring)',
                   }}
                 />
               </div>
@@ -358,6 +420,30 @@ export default function PremiumBoard({
           )}
         </div>
       )}
+      <style>{`
+        @keyframes legalMovePulse {
+          0% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+          50% { transform: translate(-50%, -50%) scale(1.15); opacity: 0.4; }
+          100% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+        }
+        @keyframes checkPulse {
+          0%, 100% { box-shadow: inset 0 0 0px transparent; }
+          50% { box-shadow: inset 0 0 40px rgba(229, 62, 62, 0.4); }
+        }
+        @keyframes flashOverlay {
+          0% { opacity: 0; }
+          10% { opacity: 1; }
+          80% { opacity: 1; }
+          100% { opacity: 0; }
+        }
+        @keyframes popText {
+          0% { transform: scale(0.5) translateY(20px); opacity: 0; filter: blur(10px); }
+          10% { transform: scale(1.1) translateY(0); opacity: 1; filter: blur(0px); }
+          20% { transform: scale(1) translateY(0); }
+          80% { transform: scale(1) translateY(0); opacity: 1; }
+          100% { transform: scale(1.2) translateY(-20px); opacity: 0; filter: blur(10px); }
+        }
+      `}</style>
     </div>
   );
 }

@@ -1,9 +1,11 @@
 using Checkiski.Application.Players.Commands.RegisterPlayer;
 using Checkiski.Application.Players.Commands.LoginPlayer;
 using Checkiski.Application.Players.Queries.GetPlayerProfile;
+using Checkiski.Application.Common.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
 
 namespace Checkiski.WebApi.Controllers
@@ -14,9 +16,36 @@ namespace Checkiski.WebApi.Controllers
     {
         private readonly IMediator _mediator;
 
-        public PlayerController(IMediator mediator)
+        private readonly IImageUploadService _imageUploadService;
+
+        public PlayerController(IMediator mediator, IImageUploadService imageUploadService)
         {
             _mediator = mediator;
+            _imageUploadService = imageUploadService;
+        }
+
+        [HttpPost("upload-profile-picture")]
+        [Authorize]
+        public async Task<IActionResult> UploadProfilePicture(IFormFile file)
+        {
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            if (file == null || file.Length == 0) return BadRequest("File is empty");
+
+            using var stream = file.OpenReadStream();
+            var uploadedUrl = await _imageUploadService.UploadImageAsync(stream, file.FileName);
+            
+            if (string.IsNullOrEmpty(uploadedUrl)) return BadRequest("Could not upload image to Cloudinary.");
+
+            var success = await _mediator.Send(new Checkiski.Application.Players.Commands.UpdateProfilePicture.UpdateProfilePictureCommand
+            {
+                PlayerId = userId,
+                ProfilePictureUrl = uploadedUrl
+            });
+
+            if (!success) return BadRequest("Could not update profile picture.");
+            return Ok(new { Url = uploadedUrl });
         }
 
         [HttpPost("register")]

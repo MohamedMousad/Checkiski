@@ -40,8 +40,7 @@ export default function LeaderboardPage() {
   };
 
   return (
-    <div style={{
-      padding: 'calc(80px + var(--space-2xl)) var(--space-xl) var(--space-2xl)',
+    <div className="page-container" style={{
       maxWidth: '800px',
       margin: '0 auto',
     }}>
@@ -63,13 +62,18 @@ export default function LeaderboardPage() {
             style={{
               padding: '0.5rem 1.5rem',
               borderRadius: '20px',
-              background: category === cat ? 'var(--color-emerald)' : 'var(--panel-bg)',
-              color: category === cat ? '#fff' : 'var(--color-text-dim)',
+              background: category === cat ? 'var(--accent-lime)' : 'var(--glass-bg)',
+              color: category === cat ? 'var(--bg-deep)' : 'var(--text-muted)',
               cursor: 'pointer',
-              fontWeight: 600,
+              fontWeight: category === cat ? 800 : 600,
+              fontFamily: 'var(--font-display)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
               transition: 'all 0.2s ease',
-              border: '1px solid ' + (category === cat ? 'var(--color-emerald)' : 'var(--panel-border)')
+              border: '1px solid ' + (category === cat ? 'var(--accent-lime)' : 'var(--glass-border)')
             }}
+            onMouseEnter={(e) => { if (category !== cat) e.currentTarget.style.color = 'var(--text-primary)' }}
+            onMouseLeave={(e) => { if (category !== cat) e.currentTarget.style.color = 'var(--text-muted)' }}
           >
             {cat}
           </button>
@@ -121,7 +125,7 @@ export default function LeaderboardPage() {
                     cursor: 'pointer',
                     transition: 'background 0.2s ease',
                   }}
-                  onClick={() => router.push(`/profile/${p.username}`)}
+                  onClick={() => router.push(`/profile/${p.id}`)}
                   onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(46,204,113,0.04)'}
                   onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                 >
