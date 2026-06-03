@@ -22,7 +22,7 @@ export default function LobbyPage() {
     }
     setCreatingGame(true);
     try {
-      const data = await ApiService.post<any>('/api/game', { hostUsername: username });
+      const data = await ApiService.post<any>('/api/game/create', { hostUsername: username });
       const gameId = typeof data === 'string' ? data : (data?.gameId || data?.GameId || data?.id || data?.Id);
       if (gameId) {
         router.push(`/play?gameId=${gameId}`);
