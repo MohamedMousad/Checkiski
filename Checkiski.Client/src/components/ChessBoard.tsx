@@ -67,6 +67,15 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
   const [roomSynced, setRoomSynced] = useState(false);
   const roomSyncedRef = useRef(false);
 
+  const isMyTurn = () => {
+    if (reviewIndex !== -1 || gameOverMsg) return false;
+    if (game.turn() === 'w') {
+      return currentUserId === whitePlayerId;
+    } else {
+      return currentUserId === blackPlayerId;
+    }
+  };
+
   const syncRoom = () => {
     if (!roomSyncedRef.current) {
       roomSyncedRef.current = true;
@@ -228,7 +237,7 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
   };
 
   const handleMove = (source: Square, target: Square) => {
-    if (reviewIndex !== -1 || gameOverMsg) return;
+    if (!isMyTurn()) return;
     try {
       const newGame = new Chess();
       newGame.loadPgn(game.pgn());
@@ -264,7 +273,15 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
           gameId, 
           playerId: localStorage.getItem('playerId'),
           fromX, fromY, toX, toY, promotion, san, fen, status
-        }).catch(err => console.error(err));
+        }).then((success) => {
+          if (!success) {
+            console.warn("Move rejected by server, reloading state...");
+            loadGameState();
+          }
+        }).catch(err => {
+          console.error(err);
+          loadGameState();
+        });
       }
     } catch (e) {}
   };
@@ -406,7 +423,7 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
           onSquareClick={handleSquareClick}
           onDragStart={onDragStart}
           onDrop={onDrop}
-          canDrag={(piece) => !isReviewMode && piece.color === game.turn() && game.turn() === (isFlipped ? 'b' : 'w')}
+          canDrag={(piece) => piece.color === game.turn() && isMyTurn()}
         />
         </div>
 
