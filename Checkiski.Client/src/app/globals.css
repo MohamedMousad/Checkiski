@@ -364,9 +364,20 @@ a.btn-primary:hover { color: var(--bg-deep) !important; }
   grid-template-columns: 1fr 1fr;
   gap: 4rem;
 }
+
+.page-container {
+  padding: calc(80px + var(--space-2xl)) var(--space-xl) var(--space-2xl);
+}
+
 @media (max-width: 1024px) {
   .responsive-grid-2 {
     grid-template-columns: 1fr;
     gap: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-container {
+    padding: calc(80px + var(--space-md)) var(--space-sm) var(--space-md) !important;
   }
 }

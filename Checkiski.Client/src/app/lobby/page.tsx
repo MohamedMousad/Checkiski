@@ -36,8 +36,7 @@ export default function LobbyPage() {
   }, [loadGames]);
 
   return (
-    <div style={{
-      padding: 'calc(80px + var(--space-2xl)) var(--space-xl) var(--space-2xl)',
+    <div className="page-container" style={{
       maxWidth: '1000px',
       margin: '0 auto',
       position: 'relative',
@@ -108,11 +107,11 @@ export default function LobbyPage() {
                 ))}
               </div>
 
-              <div style={{ display: 'flex', gap: 'var(--space-md)', marginTop: 'var(--space-sm)' }}>
-                <button onClick={() => router.push('/login')} className="btn-secondary" style={{ flex: 1 }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-md)', marginTop: 'var(--space-sm)' }}>
+                <button onClick={() => router.push('/login')} className="btn-secondary" style={{ flex: '1 1 120px' }}>
                   SIGN IN
                 </button>
-                <button onClick={() => router.push('/register')} className="btn-primary" style={{ flex: 1 }}>
+                <button onClick={() => router.push('/register')} className="btn-primary" style={{ flex: '1 1 160px' }}>
                   <span>REGISTER NOW</span>
                 </button>
               </div>

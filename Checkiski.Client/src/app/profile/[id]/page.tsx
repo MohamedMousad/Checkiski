@@ -64,10 +64,9 @@ export default function Profile() {
   ];
 
   return (
-    <div style={{
+    <div className="page-container" style={{
       display: 'flex',
       justifyContent: 'center',
-      padding: 'calc(80px + var(--space-2xl)) var(--space-xl) var(--space-2xl)',
     }}>
       <div style={{
         width: '100%',

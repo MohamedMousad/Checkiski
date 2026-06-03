@@ -40,8 +40,7 @@ export default function LeaderboardPage() {
   };
 
   return (
-    <div style={{
-      padding: 'calc(80px + var(--space-2xl)) var(--space-xl) var(--space-2xl)',
+    <div className="page-container" style={{
       maxWidth: '800px',
       margin: '0 auto',
     }}>

@@ -91,10 +91,9 @@ export default function Settings() {
   );
 
   return (
-    <div style={{
+    <div className="page-container" style={{
       display: 'flex',
       justifyContent: 'center',
-      padding: 'calc(80px + var(--space-2xl)) var(--space-xl) var(--space-2xl)',
       position: 'relative',
     }}>
       {/* Atmospheric glow */}
