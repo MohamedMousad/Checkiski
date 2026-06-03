@@ -13,6 +13,7 @@ import GameControls from './GameControls';
 import ChatBox from './ChatBox';
 import GameAnalysis from './GameAnalysis';
 import PremiumBoard from './PremiumBoard';
+import InviteModal from './InviteModal';
 
 const pieceUnicode: Record<string, string> = {
   'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 'p': '♟',
@@ -37,6 +38,7 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
   const [connection, setConnection] = useState<HubConnection | null>(null);
   const [isFlipped, setIsFlipped] = useState(false);
   const [gameOverMsg, setGameOverMsg] = useState<string | null>(null);
+  const [showInvite, setShowInvite] = useState(false);
 
   const { evaluation, bestMove, analyzeFen, isReady } = useStockfish();
   const [reviewIndex, setReviewIndex] = useState<number>(-1);
@@ -288,7 +290,12 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
                 .catch(console.error);
             }}
             onFlipBoard={() => setIsFlipped(f => !f)}
+            onInvite={() => setShowInvite(true)}
           />
+
+          {showInvite && (
+            <InviteModal gameId={gameId} onClose={() => setShowInvite(false)} />
+          )}
 
           {(game.isGameOver() || gameOverMsg) && (
              <div style={{ marginTop: 'auto' }}>
