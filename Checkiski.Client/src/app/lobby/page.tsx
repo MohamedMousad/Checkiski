@@ -11,6 +11,27 @@ export default function LobbyPage() {
   const [retryCount, setRetryCount] = useState(0);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const router = useRouter();
+  const [creatingGame, setCreatingGame] = useState(false);
+
+  const handleCreateGame = async () => {
+    if (creatingGame) return;
+    const username = localStorage.getItem('username');
+    if (!username) {
+      router.push('/login');
+      return;
+    }
+    setCreatingGame(true);
+    try {
+      const data = await ApiService.post<any>('/api/game', { hostUsername: username });
+      if (data && data.gameId) {
+        router.push(`/play?gameId=${data.gameId}`);
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert('Failed to start a new game: ' + (err.message || 'Unknown error'));
+      setCreatingGame(false);
+    }
+  };
 
   const loadGames = React.useCallback(async (showLoading = true) => {
     if (showLoading) setLoading(true);
@@ -150,7 +171,7 @@ export default function LobbyPage() {
           <p className="text-body" style={{ marginBottom: 'var(--space-lg)' }}>
             The arena is quiet. Be the first to start a match.
           </p>
-          <button onClick={() => router.push('/')} className="btn-primary" style={{ padding: '12px 28px' }}>
+          <button onClick={handleCreateGame} className="btn-primary" style={{ padding: '12px 28px' }}>
             Start a Game
           </button>
         </div>

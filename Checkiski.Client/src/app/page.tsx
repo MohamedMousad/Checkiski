@@ -3,6 +3,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
+import { ApiService } from '../services/api';
 
 export default function Home() {
   const router = useRouter();
@@ -13,6 +14,27 @@ export default function Home() {
   const subtitleRef = useRef<HTMLParagraphElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
   const [stats, setStats] = React.useState({ totalMatchesPlayed: 1420, activePlayers: 12 });
+  const [creatingGame, setCreatingGame] = React.useState(false);
+
+  const handleCreateGame = async () => {
+    if (creatingGame) return;
+    const username = localStorage.getItem('username');
+    if (!username) {
+      router.push('/login');
+      return;
+    }
+    setCreatingGame(true);
+    try {
+      const data = await ApiService.post<any>('/api/game', { hostUsername: username });
+      if (data && data.gameId) {
+        router.push(`/play?gameId=${data.gameId}`);
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert('Failed to start a new game: ' + (err.message || 'Unknown error'));
+      setCreatingGame(false);
+    }
+  };
 
   useEffect(() => {
     import('../services/api').then(({ ApiService }) => {
@@ -155,7 +177,7 @@ export default function Home() {
 
             <div className="hero-cta-group" style={{ display: 'flex', gap: '1.5rem', marginLeft: '1vw' }}>
               <button 
-                onClick={() => router.push('/play')}
+                onClick={handleCreateGame}
                 className="btn-primary"
               >
                 <span>Play Now</span>

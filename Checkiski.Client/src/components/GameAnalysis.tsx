@@ -74,52 +74,64 @@ export default function GameAnalysis({ pgn }: { pgn: string }) {
     state.currentIndex++;
     setProgress(Math.round((state.currentIndex / state.totalMoves) * 100));
 
-    if (state.currentIndex < state.totalMoves) {
-      // Next move
-      analyzeFen(state.fens[state.currentIndex], 10);
-    } else {
-      // Finished
-      state.analyzing = false;
-      
-      let excellent = 0;
-      let good = 0;
-      let inaccuracy = 0;
-      let mistake = 0;
-      let blunder = 0;
-      
-      let totalLoss = 0;
+    const processNext = () => {
+      if (state.currentIndex < state.totalMoves) {
+        const nextFen = state.fens[state.currentIndex];
+        const tempGame = new Chess(nextFen);
+        if (tempGame.isGameOver()) {
+          state.evaluations.push(tempGame.isCheckmate() ? (tempGame.turn() === 'w' ? -100 : 100) : 0);
+          state.currentIndex++;
+          setProgress(Math.round((state.currentIndex / state.totalMoves) * 100));
+          processNext();
+        } else {
+          analyzeFen(nextFen, 10);
+        }
+      } else {
+        // Finished
+        state.analyzing = false;
+        
+        let excellent = 0;
+        let good = 0;
+        let inaccuracy = 0;
+        let mistake = 0;
+        let blunder = 0;
+        
+        let totalLoss = 0;
 
-      for (let i = 1; i < state.evaluations.length; i++) {
-        const prevFen = state.fens[i - 1];
-        const currFen = state.fens[i];
-        
-        const prevIsWhite = prevFen.includes(' w ');
-        const currIsWhite = currFen.includes(' w ');
-        
-        // Stockfish score is from perspective of side to move. We convert to absolute (White's advantage).
-        const prevAbs = prevIsWhite ? state.evaluations[i - 1] : -state.evaluations[i - 1];
-        const currAbs = currIsWhite ? state.evaluations[i] : -state.evaluations[i];
-        
-        // diff > 0 means the player who moved gained an advantage. diff < 0 means they lost an advantage.
-        const diff = prevIsWhite ? (currAbs - prevAbs) : (prevAbs - currAbs);
-        
-        if (diff > 0.5) excellent++;
-        else if (diff > -0.5) good++;
-        else if (diff > -1.0) inaccuracy++;
-        else if (diff > -2.0) mistake++;
-        else blunder++;
+        for (let i = 1; i < state.evaluations.length; i++) {
+          const prevFen = state.fens[i - 1];
+          const currFen = state.fens[i];
+          
+          const prevIsWhite = prevFen.includes(' w ');
+          const currIsWhite = currFen.includes(' w ');
+          
+          // Stockfish score is from perspective of side to move. We convert to absolute (White's advantage).
+          const prevAbs = prevIsWhite ? state.evaluations[i - 1] : -state.evaluations[i - 1];
+          const currAbs = currIsWhite ? state.evaluations[i] : -state.evaluations[i];
+          
+          // diff > 0 means the player who moved gained an advantage. diff < 0 means they lost an advantage.
+          const diff = prevIsWhite ? (currAbs - prevAbs) : (prevAbs - currAbs);
+          
+          if (diff > 0.5) excellent++;
+          else if (diff > -0.5) good++;
+          else if (diff > -1.0) inaccuracy++;
+          else if (diff > -2.0) mistake++;
+          else blunder++;
 
-        if (diff < 0) totalLoss += Math.abs(diff);
+          if (diff < 0) totalLoss += Math.abs(diff);
+        }
+
+        const avgLoss = (state.totalMoves > 0) ? (totalLoss / state.totalMoves) : 0;
+        let accuracyScore = 100 - (avgLoss * 15); // Scale loss to percentage
+        accuracyScore = Math.max(0, Math.min(100, accuracyScore));
+        
+        setClassifications({ excellent, good, inaccuracy, mistake, blunder });
+        setAccuracy(accuracyScore);
+        setIsAnalyzing(false);
       }
+    };
 
-      const avgLoss = (state.totalMoves > 0) ? (totalLoss / state.totalMoves) : 0;
-      let accuracyScore = 100 - (avgLoss * 15); // Scale loss to percentage
-      accuracyScore = Math.max(0, Math.min(100, accuracyScore));
-      
-      setClassifications({ excellent, good, inaccuracy, mistake, blunder });
-      setAccuracy(accuracyScore);
-      setIsAnalyzing(false);
-    }
+    processNext();
   }, [bestMove, isReady, analyzeFen, evaluation]);
 
   if (!pgn) return null;
