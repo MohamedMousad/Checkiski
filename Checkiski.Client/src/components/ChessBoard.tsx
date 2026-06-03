@@ -365,7 +365,7 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
       {/* Center Column: Clocks & Board */}
       <div className="chess-board-container">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-          <GameClock timeRemaining={isFlipped ? whiteClock : blackClock} isActive={isGameActive && game.turn() === (isFlipped ? 'w' : 'b')} onTimeout={handleTimeout} />
+          <GameClock timeRemaining={isFlipped ? whiteClock : blackClock} isActive={roomSynced && !gameOverMsg && game.turn() === (isFlipped ? 'w' : 'b')} onTimeout={handleTimeout} />
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
              {isReviewMode && (
                 <span style={{ background: 'var(--accent-primary)', color: '#fff', padding: '2px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold' }}>
@@ -411,7 +411,7 @@ export default function ChessBoard({ gameId }: { gameId: string }) {
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>
-          <GameClock timeRemaining={isFlipped ? blackClock : whiteClock} isActive={roomSynced && !gameOverMsg && status === 'InProgress' && game.turn() === (isFlipped ? 'b' : 'w')} onTimeout={handleTimeout} />
+          <GameClock timeRemaining={isFlipped ? blackClock : whiteClock} isActive={roomSynced && !gameOverMsg && game.turn() === (isFlipped ? 'b' : 'w')} onTimeout={handleTimeout} />
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
              {isReviewMode && (
                 <span style={{ padding: '0.5rem', fontWeight: 'bold', color: 'var(--accent-primary)' }}>
