@@ -77,7 +77,7 @@ export default function LobbyPage() {
               width: '100%', aspectRatio: '1/1', overflow: 'hidden', position: 'relative',
               boxShadow: 'var(--shadow-lg)'
             }}>
-              <img src="/images/lobby-arena.png" alt="Lobby Arena" style={{
+              <img src="https://res.cloudinary.com/dddhzbrqy/image/upload/v1780506067/checkiski_frontend/lobby-arena.jpg" alt="Lobby Arena" style={{
                 width: '100%', height: '100%', objectFit: 'cover', filter: 'contrast(1.1) brightness(0.9)',
                 transition: 'transform 10s ease'
               }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.05)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'} />

@@ -184,19 +184,19 @@ export default function Home() {
             }}>
               {/* Back Card - Rook */}
               <div className="hero-card hero-card-3 glass-panel">
-                <img src="/images/hero-card-2.png" alt="Cinematic Chess Rook" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src="https://res.cloudinary.com/dddhzbrqy/image/upload/v1780506051/checkiski_frontend/hero-card-2.jpg" alt="Cinematic Chess Rook" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 40%, transparent 60%, rgba(217, 248, 69, 0.05) 100%)' }} />
               </div>
               
               {/* Middle Card - Queen */}
               <div className="hero-card hero-card-2 glass-panel">
-                <img src="/images/hero-card-1.png" alt="Cinematic Chess Queen" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src="https://res.cloudinary.com/dddhzbrqy/image/upload/v1780506046/checkiski_frontend/hero-card-1.jpg" alt="Cinematic Chess Queen" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 40%, transparent 60%, rgba(217, 248, 69, 0.05) 100%)' }} />
               </div>
 
               {/* Front Card - Knight */}
               <div className="hero-card hero-card-1 glass-panel">
-                <img src="/images/cinematic-hero.png" alt="Cinematic Chess Knight" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src="https://res.cloudinary.com/dddhzbrqy/image/upload/v1780506032/checkiski_frontend/cinematic-hero.jpg" alt="Cinematic Chess Knight" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 40%, transparent 60%, rgba(217, 248, 69, 0.05) 100%)' }} />
               </div>
             </div>
@@ -208,7 +208,7 @@ export default function Home() {
               animation: 'float 7s ease-in-out infinite reverse',
               cursor: 'pointer'
             }}>
-              <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'url(/images/cinematic-multiplayer.png) center/cover', border: '1px solid var(--accent-lime)' }} />
+              <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'url(https://res.cloudinary.com/dddhzbrqy/image/upload/v1780506038/checkiski_frontend/cinematic-multiplayer.jpg) center/cover', border: '1px solid var(--accent-lime)' }} />
               <div>
                 <div className="text-caption" style={{ color: 'var(--text-primary)', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-lime)', boxShadow: '0 0 8px var(--accent-lime)' }}></span>
@@ -285,7 +285,7 @@ export default function Home() {
           {/* Feature 1: Engine */}
           <div className="feature-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'center' }}>
             <div className="glass-panel" style={{ position: 'relative', aspectRatio: '16/9', overflow: 'hidden' }}>
-              <img src="/images/cinematic-engine.png" alt="Engine Analysis" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <img src="https://res.cloudinary.com/dddhzbrqy/image/upload/v1780506028/checkiski_frontend/cinematic-engine.jpg" alt="Engine Analysis" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </div>
             <div>
               <div className="text-caption" style={{ color: 'var(--accent-lime)', marginBottom: '1rem' }}>NEURAL EVALUATION</div>
@@ -306,7 +306,7 @@ export default function Home() {
               </p>
             </div>
             <div className="glass-panel" style={{ position: 'relative', aspectRatio: '16/9', overflow: 'hidden', order: 2 }}>
-              <img src="/images/cinematic-multiplayer.png" alt="Multiplayer Arena" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <img src="https://res.cloudinary.com/dddhzbrqy/image/upload/v1780506038/checkiski_frontend/cinematic-multiplayer.jpg" alt="Multiplayer Arena" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </div>
           </div>
 

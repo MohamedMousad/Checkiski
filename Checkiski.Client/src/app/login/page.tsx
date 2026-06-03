@@ -168,7 +168,7 @@ export default function Login() {
             animation: 'float 6s ease-in-out infinite',
           }}>
             <img 
-              src="/images/cinematic-login.png" 
+              src="https://res.cloudinary.com/dddhzbrqy/image/upload/v1780506034/checkiski_frontend/cinematic-login.jpg" 
               alt="Cinematic Chess Rook"
               style={{
                 width: '100%', height: '100%', objectFit: 'cover',

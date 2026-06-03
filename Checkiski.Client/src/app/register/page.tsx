@@ -82,7 +82,7 @@ export default function Register() {
             animationDelay: '-3s', // Offset from login image
           }}>
             <img 
-              src="/images/cinematic-register.png" 
+              src="https://res.cloudinary.com/dddhzbrqy/image/upload/v1780506042/checkiski_frontend/cinematic-register.jpg" 
               alt="Cinematic Chess Queen"
               style={{
                 width: '100%', height: '100%', objectFit: 'cover',
